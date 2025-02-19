@@ -7,7 +7,7 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 SET(CMAKE_C_FLAGS "-O3 -Wall")
 SET(CMAKE_CXX_FLAGS "-O3 -Wall")
 
-LINK_LIBRARIES(pthread ssl crypto jansson m z)
+LINK_LIBRARIES(pthread jansson mozjs-91 curl z)
 
 ADD_EXECUTABLE(${CMAKE_PROJECT_NAME}
 	main.hpp
