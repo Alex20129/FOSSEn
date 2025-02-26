@@ -8,13 +8,17 @@ CURL
 
 `apt install libcurl4-openssl-dev`
 
-SpiderMonkey
+Qt 5 WebKit
 
-`apt install libmozjs-91-dev`
+`apt install libqt5webkit5-dev`
 
 Jansson
 
 `apt install libjansson-dev`
+
+HTMLcxx
+
+`apt install libhtmlcxx-dev`
 
 ZLib
 

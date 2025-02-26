@@ -4,10 +4,12 @@ PROJECT(FOSSEn)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-SET(CMAKE_C_FLAGS "-O3 -Wall")
-SET(CMAKE_CXX_FLAGS "-O3 -Wall")
+SET(CMAKE_C_FLAGS "-O0 -Wall")
+SET(CMAKE_CXX_FLAGS "-O0 -Wall")
 
-LINK_LIBRARIES(pthread jansson mozjs-91 curl z)
+LINK_LIBRARIES(pthread jansson mozjs-91 curl htmlcxx ssl crypto z)
+
+ADD_SUBDIRECTORY(phantomjs)
 
 ADD_EXECUTABLE(${CMAKE_PROJECT_NAME}
 	main.hpp
