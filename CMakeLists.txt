@@ -7,7 +7,7 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 SET(CMAKE_C_FLAGS "-O0 -Wall")
 SET(CMAKE_CXX_FLAGS "-O0 -Wall")
 
-LINK_LIBRARIES(pthread jansson mozjs-91 curl htmlcxx ssl crypto z)
+LINK_LIBRARIES(pthread jansson curl htmlcxx ssl crypto z)
 
 ADD_SUBDIRECTORY(phantomjs)
 
