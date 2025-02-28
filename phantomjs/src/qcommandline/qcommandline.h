@@ -353,13 +353,14 @@ signals:
 	void parseError(const QString & error);
 private:
 	QCommandLinePrivate *d;
-	Q_DECLARE_PRIVATE(QCommandLine);
+	Q_DECLARE_PRIVATE(QCommandLine)
 };
 
 /**
  * @brief Configuration entry structure
  */
-struct QCommandLineConfigEntry {
+struct QCommandLineConfigEntry
+{
 	/**
 	 * Entry Type
 	 */

@@ -6,7 +6,6 @@
 
 #include <QString>
 #include <QObject>
-#include <memory>
 
 class PhantomWrapper : public QObject
 {
@@ -20,15 +19,9 @@ private slots:
 public:
 	PhantomWrapper(QObject *parent=nullptr);
 	~PhantomWrapper();
-
 	void loadPage(const QString &url);
-
-	// Получение отрендеренного HTML
 	QString getPageHtml() const;
-
-	// Получение текстового содержимого страницы
 	QString getPagePlainText() const;
-
 signals:
 	void webPageHasBeenLoaded();
 };

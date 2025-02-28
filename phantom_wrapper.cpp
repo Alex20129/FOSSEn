@@ -10,10 +10,9 @@ PhantomWrapper::PhantomWrapper(QObject *parent) : QObject(parent)
 	m_default_settings["javascriptEnabled"] = true;
 	m_default_settings["loadImages"] = false;
 	m_default_settings["userAgent"] = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0";
-
-	m_config=new Config(nullptr);
-	m_cookie_jar = new CookieJar(m_config->cookiesFile());
-	m_page=new WebPage(nullptr);
+	m_config=new Config(this);
+	m_cookie_jar = new CookieJar(m_config->cookiesFile(), this);
+	m_page=new WebPage(this);
 	m_page->setCookieJar(m_cookie_jar);
 	QObject::connect(m_page, &WebPage::loadFinished, this, &PhantomWrapper::onWebPageLoadingFinished);
 }
