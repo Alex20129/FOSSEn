@@ -7,14 +7,14 @@
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the <organization> nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
+	* Redistributions of source code must retain the above copyright
+	  notice, this list of conditions and the following disclaimer.
+	* Redistributions in binary form must reproduce the above copyright
+	  notice, this list of conditions and the following disclaimer in the
+	  documentation and/or other materials provided with the distribution.
+	* Neither the name of the <organization> nor the
+	  names of its contributors may be used to endorse or promote products
+	  derived from this software without specific prior written permission.
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -37,54 +37,54 @@
 #include <QVariantList>
 #include <QVariantMap>
 
-class CookieJar : public QNetworkCookieJar {
-    Q_OBJECT
-
-    Q_PROPERTY(QVariantList cookies READ cookiesToMap WRITE addCookiesFromMap)
+class CookieJar : public QNetworkCookieJar
+{
+	Q_OBJECT
+	Q_PROPERTY(QVariantList cookies READ cookiesToMap WRITE addCookiesFromMap)
 
 public:
-    CookieJar(QString cookiesFile, QObject* parent = Q_NULLPTR);
-    virtual ~CookieJar();
+	CookieJar(QString cookiesFile, QObject* parent = Q_NULLPTR);
+	virtual ~CookieJar();
 
-    bool setCookiesFromUrl(const QList<QNetworkCookie>& cookieList, const QUrl& url);
-    QList<QNetworkCookie> cookiesForUrl(const QUrl& url) const;
+	bool setCookiesFromUrl(const QList<QNetworkCookie>& cookieList, const QUrl& url);
+	QList<QNetworkCookie> cookiesForUrl(const QUrl& url) const;
 
-    bool addCookie(const QNetworkCookie& cookie, const QString& url = QString());
-    bool addCookies(const QList<QNetworkCookie>& cookiesList, const QString& url = QString());
+	bool addCookie(const QNetworkCookie& cookie, const QString& url = QString());
+	bool addCookies(const QList<QNetworkCookie>& cookiesList, const QString& url = QString());
 
-    QList<QNetworkCookie> cookies(const QString& url = QString()) const;
+	QList<QNetworkCookie> cookies(const QString& url = QString()) const;
 
-    QNetworkCookie cookie(const QString& name, const QString& url = QString()) const;
+	QNetworkCookie cookie(const QString& name, const QString& url = QString()) const;
 
-    using QNetworkCookieJar::deleteCookie;
-    bool deleteCookies(const QString& url = QString());
+	using QNetworkCookieJar::deleteCookie;
+	bool deleteCookies(const QString& url = QString());
 
-    void enable();
-    void disable();
-    bool isEnabled() const;
+	void enable();
+	void disable();
+	bool isEnabled() const;
 
 public slots:
-    bool addCookie(const QVariantMap& cookie);
-    bool addCookieFromMap(const QVariantMap& cookie, const QString& url = QString());
-    bool addCookiesFromMap(const QVariantList& cookiesList, const QString& url = QString());
-    QVariantList cookiesToMap(const QString& url = QString()) const;
-    QVariantMap cookieToMap(const QString& name, const QString& url = QString()) const;
-    bool deleteCookie(const QString& name, const QString& url = QString());
-    void clearCookies();
-    void close();
+	bool addCookie(const QVariantMap& cookie);
+	bool addCookieFromMap(const QVariantMap& cookie, const QString& url = QString());
+	bool addCookiesFromMap(const QVariantList& cookiesList, const QString& url = QString());
+	QVariantList cookiesToMap(const QString& url = QString()) const;
+	QVariantMap cookieToMap(const QString& name, const QString& url = QString()) const;
+	bool deleteCookie(const QString& name, const QString& url = QString());
+	void clearCookies();
+	void close();
 
 private slots:
-    bool purgeExpiredCookies();
-    bool purgeSessionCookies();
-    void save();
-    void load();
+	bool purgeExpiredCookies();
+	bool purgeSessionCookies();
+	void save();
+	void load();
 
 private:
-    bool contains(const QNetworkCookie& cookie) const;
+	bool contains(const QNetworkCookie& cookie) const;
 
 private:
-    QSettings* m_cookieStorage;
-    bool m_enabled;
+	QSettings* m_cookieStorage;
+	bool m_enabled;
 };
 
 #endif // COOKIEJAR_H

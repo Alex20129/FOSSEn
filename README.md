@@ -19,7 +19,3 @@ Jansson
 HTMLcxx
 
 `apt install libhtmlcxx-dev`
-
-ZLib
-
-`apt install zlib1g-dev`

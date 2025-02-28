@@ -50,7 +50,6 @@ static int inner_main(int argc, char** argv)
 
 	QApplication app(argc, argv);
 
-	app.setWindowIcon(QIcon(":/phantomjs-icon.png"));
 	app.setApplicationName("PhantomJS");
 	app.setOrganizationName("Ofi Labs");
 	app.setOrganizationDomain("www.ofilabs.com");
@@ -105,13 +104,13 @@ int main(int argc, char** argv)
 		//
 		// print_crash_message includes a call to fflush(stderr).
 	}
-	catch (std::bad_alloc)
+	catch (std::bad_alloc const&)
 	{
 		fputs("Memory exhausted.\n", stderr);
 		fflush(stderr);
 		return 1;
 	}
-	catch (std::exception& e)
+	catch (std::exception &e)
 	{
 		fputs("Uncaught C++ exception: ", stderr);
 		fputs(e.what(), stderr);

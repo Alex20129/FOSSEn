@@ -1,13 +1,15 @@
-#include "main.hpp"
-
 #include <iostream>
 #include <string>
-#include <sstream>
+
+#include <QApplication>
 
 #include <htmlcxx/html/ParserDom.h>
 #include <htmlcxx/html/Node.h>
 
 #include <curl/curl.h>
+
+#include "main.hpp"
+#include "phantom_wrapper.hpp"
 
 using namespace std;
 using namespace htmlcxx;
@@ -41,57 +43,19 @@ std::string fetchContent(const std::string &url)
 	return readBuffer;
 }
 
-std::string extractJScriptsFromHtml(const std::string& html)
+int main(int argc, char** argv)
 {
-	stringstream scripts;
-	HTML::ParserDom parser;
-	tree<HTML::Node> dom = parser.parseTree(html);
-	bool needToExtractJSText=0;
-
-	for (HTML::Node html_node : dom)
-	{
-		if (html_node.isTag())
-		{
-			if (html_node.tagName() == "script")
-			{
-				html_node.parseAttributes();
-				if (html_node.attribute("src").second.length())
-				{
-					// cout << html_node.attribute("src").second;
-					// cout << "\n++++++++++++++++++\n";
-					std::string jsContent=fetchContent(html_node.attribute("src").second);
-					if (jsContent.length())
-					{
-						scripts << jsContent << "\n";
-						// scripts << "\n++++++++++++++++++\n";
-					}
-				}
-				else
-				{
-					needToExtractJSText=1;
-				}
-			}
-		}
-		else if (!html_node.isComment() && needToExtractJSText)
-		{
-			needToExtractJSText=0;
-			if (html_node.text().length())
-			{
-				scripts << html_node.text() << "\n";
-				// scripts << "\n++++++++++++++++++\n";
-			}
-		}
-	}
-	return scripts.str();
-}
-
-int main()
-{
-	std::string pg=fetchContent("https://www.thingiverse.com");
+	// std::string pg=fetchContent("https://stackoverflow.com");
 	// std::cout << pg << "\n==================\n";
 
-	std::string js=extractJScriptsFromHtml(pg);
-	std::cout << js;
+	QApplication fossenApp(argc, argv);
+	PhantomWrapper phWrapper;
 
-	return(0);
+	QObject::connect(&phWrapper, &PhantomWrapper::webPageHasBeenLoaded, &fossenApp, &QApplication::quit);
+
+	QString url("https://stackoverflow.com");
+
+	phWrapper.loadPage(url);
+
+	return(fossenApp.exec());
 }
