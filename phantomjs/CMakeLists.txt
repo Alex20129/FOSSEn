@@ -6,7 +6,7 @@ SET(CMAKE_CXX_STANDARD 11)
 find_package(Qt5 COMPONENTS Core Network WebKitWidgets REQUIRED)
 find_package(Threads REQUIRED)
 
-message("Using Qt version ${Qt5Core_VERSION}")
+message("Qt version ${Qt5Core_VERSION}")
 if (Qt5Core_VERSION VERSION_LESS 5.15)
   message(FATAL_ERROR "This version of Qt is not supported. Please use Qt 5.15 or later")
 endif()
