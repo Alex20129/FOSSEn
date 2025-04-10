@@ -35,27 +35,35 @@ QString PhantomWrapper::getPagePlainText() const
 QStringList PhantomWrapper::getPageLinks() const
 {
 	QStringList links;
+	if (!m_page)
+	{
+		return links;
+	}
 	QWebFrame *mainFrame=m_page->mainFrame();
-	QUrl baseUrl=m_page->url();
 	if (mainFrame)
 	{
+		QUrl baseUrl=m_page->url();
 		QWebElementCollection elements=mainFrame->findAllElements("a");
 		for (const QWebElement &element : elements)
 		{
 			QString href=element.attribute("href");
+			QUrl newUrl;
 			if (!href.isEmpty())
 			{
 				if (baseUrl.isValid())
 				{
-					QUrl absoluteUrl = baseUrl.resolved(QUrl(href));
-					if (absoluteUrl.isValid())
-					{
-						links.append(absoluteUrl.toString());
-					}
+					newUrl=baseUrl.resolved(QUrl(href));
 				}
 				else
 				{
-					links.append(href);
+					newUrl=QUrl(href);
+				}
+				if (newUrl.isValid())
+				{
+					if (newUrl.scheme()==QStringLiteral("http") || newUrl.scheme()==QStringLiteral("https"))
+					{
+						links.append(newUrl.toString());
+					}
 				}
 			}
 		}
