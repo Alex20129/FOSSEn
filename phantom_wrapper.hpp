@@ -18,10 +18,10 @@ private slots:
 	void onWebPageLoadingFinished();
 public:
 	PhantomWrapper(QObject *parent=nullptr);
-	~PhantomWrapper();
 	void loadPage(const QString &url);
 	QString getPageHtml() const;
 	QString getPagePlainText() const;
+	QStringList getPageLinks() const;
 signals:
 	void webPageHasBeenLoaded();
 };
