@@ -36,15 +36,27 @@ QStringList PhantomWrapper::getPageLinks() const
 {
 	QStringList links;
 	QWebFrame *mainFrame=m_page->mainFrame();
+	QUrl baseUrl=m_page->url();
 	if (mainFrame)
 	{
 		QWebElementCollection elements=mainFrame->findAllElements("a");
-		for (const QWebElement& element : elements)
+		for (const QWebElement &element : elements)
 		{
 			QString href=element.attribute("href");
 			if (!href.isEmpty())
 			{
-				links.append(href);
+				if (baseUrl.isValid())
+				{
+					QUrl absoluteUrl = baseUrl.resolved(QUrl(href));
+					if (absoluteUrl.isValid())
+					{
+						links.append(absoluteUrl.toString());
+					}
+				}
+				else
+				{
+					links.append(href);
+				}
 			}
 		}
 	}
