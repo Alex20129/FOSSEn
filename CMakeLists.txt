@@ -28,5 +28,7 @@ LINK_LIBRARIES(jansson)
 ADD_EXECUTABLE(${CMAKE_PROJECT_NAME}
 	main.hpp
 	main.cpp
+	crawler.hpp
+	crawler.cpp
 	phantom_wrapper.hpp
 	phantom_wrapper.cpp)

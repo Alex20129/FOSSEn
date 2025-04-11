@@ -14,6 +14,8 @@ class PhantomWrapper : public QObject
 	CookieJar *m_cookie_jar;
 	Config *m_config;
 	QVariantMap m_default_settings;
+signals:
+	void webPageHasBeenLoaded();
 private slots:
 	void onWebPageLoadingFinished();
 public:
@@ -22,8 +24,6 @@ public:
 	QString getPageHtml() const;
 	QString getPagePlainText() const;
 	QStringList getPageLinks() const;
-signals:
-	void webPageHasBeenLoaded();
 };
 
 #endif // PHANTOM_WRAPPER_HPP

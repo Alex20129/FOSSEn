@@ -35,10 +35,6 @@ QString PhantomWrapper::getPagePlainText() const
 QStringList PhantomWrapper::getPageLinks() const
 {
 	QStringList links;
-	if (!m_page)
-	{
-		return links;
-	}
 	QWebFrame *mainFrame=m_page->mainFrame();
 	if (mainFrame)
 	{
