@@ -4,10 +4,6 @@
 # Requirements
 To build it you will need to install some development packages:
 
-CURL
-
-`apt install libcurl4-openssl-dev`
-
 Qt 5 WebKit
 
 `apt install libqt5webkit5-dev`

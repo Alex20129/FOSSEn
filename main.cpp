@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 
 	QObject::connect(&phWrapper, &PhantomWrapper::webPageHasBeenLoaded, &fossenApp, &QApplication::quit);
 
-	QString url("https://stackoverflow.com");
+	QString url("https://www.lostfilm.tv/movies/");
 
 	phWrapper.loadPage(url);
 
