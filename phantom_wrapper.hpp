@@ -10,20 +10,22 @@
 class PhantomWrapper : public QObject
 {
 	Q_OBJECT
-	WebPage *m_page;
-	CookieJar *m_cookie_jar;
-	Config *m_config;
-	QVariantMap m_default_settings;
+	WebPage *mPage;
+	CookieJar *mCookieJar;
+	Config *mConfig;
+	QVariantMap mDefaultSettings;
 signals:
-	void webPageHasBeenLoaded();
+	void pageHasBeenLoaded();
 private slots:
-	void onWebPageLoadingFinished();
+	void onPageLoadingFinished();
 public:
 	PhantomWrapper(QObject *parent=nullptr);
 	void loadPage(const QString &url);
 	QString getPageHtml() const;
 	QString getPagePlainText() const;
-	QStringList getPageLinks() const;
+	QString getPageTitle() const;
+	QString getPageURL() const;
+	QStringList extractPageLinks() const;
 };
 
 #endif // PHANTOM_WRAPPER_HPP

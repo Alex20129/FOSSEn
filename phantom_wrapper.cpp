@@ -7,38 +7,48 @@
 
 PhantomWrapper::PhantomWrapper(QObject *parent) : QObject(parent)
 {
-	m_default_settings["javascriptEnabled"]=true;
-	m_default_settings["loadImages"]=false;
-	m_default_settings["userAgent"]="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0";
-	m_config=new Config(this);
-	m_cookie_jar=new CookieJar(m_config->cookiesFile(), this);
-	m_page=new WebPage(this);
-	m_page->setCookieJar(m_cookie_jar);
-	QObject::connect(m_page, &WebPage::loadFinished, this, &PhantomWrapper::onWebPageLoadingFinished);
+	mDefaultSettings["javascriptEnabled"]=true;
+	mDefaultSettings["loadImages"]=false;
+	mDefaultSettings["userAgent"]="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0";
+	mConfig=new Config(this);
+	mCookieJar=new CookieJar(mConfig->cookiesFile(), this);
+	mPage=new WebPage(this);
+	mPage->setCookieJar(mCookieJar);
+	connect(mPage, &WebPage::loadFinished, this, &PhantomWrapper::onPageLoadingFinished);
 }
 
 void PhantomWrapper::loadPage(const QString &url)
 {
-	m_page->openUrl(url, "get", m_default_settings);
+	mPage->openUrl(url, "get", mDefaultSettings);
 }
 
 QString PhantomWrapper::getPageHtml() const
 {
-	return m_page->content();
+	return mPage->content();
 }
 
 QString PhantomWrapper::getPagePlainText() const
 {
-	return m_page->plainText();
+	return mPage->plainText();
 }
 
-QStringList PhantomWrapper::getPageLinks() const
+QString PhantomWrapper::getPageTitle() const
+{
+	return mPage->mainFrame()->title();
+}
+
+QString PhantomWrapper::getPageURL() const
+{
+	return mPage->url();
+}
+
+QStringList PhantomWrapper::extractPageLinks() const
 {
 	QStringList links;
-	QWebFrame *mainFrame=m_page->mainFrame();
+	QWebFrame *mainFrame=mPage->mainFrame();
 	if (mainFrame)
 	{
-		QUrl baseUrl=m_page->url();
+		QUrl baseUrl=mPage->url();
 		QWebElementCollection elements=mainFrame->findAllElements("a");
 		for (const QWebElement &element : elements)
 		{
@@ -56,7 +66,7 @@ QStringList PhantomWrapper::getPageLinks() const
 				}
 				if (newUrl.isValid())
 				{
-					if (newUrl.scheme()==QStringLiteral("http") || newUrl.scheme()==QStringLiteral("https"))
+					if (newUrl.scheme() == QStringLiteral("http") || newUrl.scheme() == QStringLiteral("https"))
 					{
 						links.append(newUrl.toString());
 					}
@@ -67,17 +77,23 @@ QStringList PhantomWrapper::getPageLinks() const
 	return links;
 }
 
-void PhantomWrapper::onWebPageLoadingFinished()
+void PhantomWrapper::onPageLoadingFinished()
 {
-	int page_html=open("page.html", O_WRONLY | O_CREAT, 0664);
-	write(page_html, getPageHtml().toStdString().data(), getPageHtml().toStdString().length());
-	close(page_html);
+	int pageHtmlFile = open("page.html", O_WRONLY | O_CREAT, 0664);
+	write(pageHtmlFile, getPageHtml().toStdString().data(), getPageHtml().toStdString().length());
+	close(pageHtmlFile);
 
-	int page_txt=open("page.txt", O_WRONLY | O_CREAT, 0664);
-	write(page_txt, getPagePlainText().toStdString().data(), getPagePlainText().toStdString().length());
-	close(page_txt);
+	int pageTextFile = open("page.txt", O_WRONLY | O_CREAT, 0664);
+	write(pageTextFile, getPagePlainText().toStdString().data(), getPagePlainText().toStdString().length());
+	close(pageTextFile);
 
-	qDebug()<<"PageLinks:\n"<<getPageLinks();
+	int pageLinksFile = open("page_links.txt", O_WRONLY | O_CREAT, 0664);
+	QStringList PageLinksList = extractPageLinks();
+	for(QString link : PageLinksList)
+	{
+		write(pageTextFile, link.toStdString().data(), link.toStdString().length());
+	}
+	close(pageLinksFile);
 
-	emit(webPageHasBeenLoaded());
+	emit(pageHasBeenLoaded());
 }
