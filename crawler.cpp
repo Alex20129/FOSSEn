@@ -61,6 +61,7 @@ void Crawler::loadNextPage()
 	mURLQueueMutex.unlock();
 }
 
+//for debug purpose
 static int visited_n=0;
 
 void Crawler::onPageHasBeenLoaded()
