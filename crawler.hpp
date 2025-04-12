@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QThread>
 #include <QMutex>
+#include <QTimer>
 #include <QQueue>
 #include "phantom_wrapper.hpp"
 
@@ -18,6 +19,7 @@ class Crawler : public QObject
 {
 	Q_OBJECT
 	QThread *mCrawlerPersonalThread;
+	QTimer *mLoadingIntervalTimer;
 	PhantomWrapper *mPhantom;
 	QQueue<QString> mURLQueue;
 	static QHash<QString, PageData> sVisitedPages;
@@ -31,12 +33,14 @@ signals:
 private slots:
 	void onNewThreadStarted();
 	void onNewThreadFinished();
+	void loadNextPage();
 	void onPageHasBeenLoaded();
 public:
 	Crawler(QObject *parent=nullptr);
 	void start();
 	void stop();
 	void addURLToQueue(const QString &url_string);
+	void addURLToBlacklist(const QString &url_string);
 };
 
 #endif // CRAWLER_HPP

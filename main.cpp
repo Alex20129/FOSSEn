@@ -15,17 +15,21 @@ int main(int argc, char** argv)
 
 	QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QApplication::quit);
 
-	QString startingURL1("https://codeforum.org");
-	QString startingURL2("https://stackoverflow.com/search?q=malloc");
-	QString startingURL3("https://www.google.com/search?udm=2&q=fast+sorting+algorithm");
-	QString startingURL4("https://search.yahoo.com/search?p=qt+web+kit");
-	QString startingURL5("https://www.lostfilm.tv/movies/");
+	myCrawler->addURLToQueue(QString("https://stackoverflow.com/search?q=malloc"));
+	myCrawler->addURLToQueue(QString("https://www.google.com/search?udm=2&q=fast+sorting+algorithm"));
+	myCrawler->addURLToQueue(QString("https://search.yahoo.com/search?p=quantum+computing"));
+	myCrawler->addURLToQueue(QString("https://www.lostfilm.tv/movies/"));
 
-	myCrawler->addURLToQueue(startingURL1);
-	myCrawler->addURLToQueue(startingURL2);
-	myCrawler->addURLToQueue(startingURL3);
-	myCrawler->addURLToQueue(startingURL4);
-	myCrawler->addURLToQueue(startingURL5);
+	myCrawler->addURLToBlacklist(QString("www.linkedin.com"));
+	myCrawler->addURLToBlacklist(QString("linkedin.com"));
+	myCrawler->addURLToBlacklist(QString("www.instagram.com"));
+	myCrawler->addURLToBlacklist(QString("www.google.com"));
+	myCrawler->addURLToBlacklist(QString("www.yandex.ru"));
+	myCrawler->addURLToBlacklist(QString("www.ya.ru"));
+	myCrawler->addURLToBlacklist(QString("www.yahoo.com"));
+	myCrawler->addURLToBlacklist(QString("www.dzen.ru"));
+	myCrawler->addURLToBlacklist(QString("dzen.ru"));
+	myCrawler->addURLToBlacklist(QString("www.facebook.com"));
 
 	QTimer::singleShot(0, myCrawler, &Crawler::start);
 

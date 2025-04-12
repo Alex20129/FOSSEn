@@ -34,7 +34,7 @@ QString PhantomWrapper::getPagePlainText() const
 
 QString PhantomWrapper::getPageTitle() const
 {
-	return mPage->mainFrame()->title();
+	return mPage->title();
 }
 
 QString PhantomWrapper::getPageURL() const
@@ -92,6 +92,7 @@ void PhantomWrapper::onPageLoadingFinished()
 	for(QString link : PageLinksList)
 	{
 		write(pageTextFile, link.toStdString().data(), link.toStdString().length());
+		write(pageTextFile, "\n", 2);
 	}
 	close(pageLinksFile);
 

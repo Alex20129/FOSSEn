@@ -9,22 +9,27 @@ QMutex Crawler::sBlacklistMutex;
 Crawler::Crawler(QObject *parent) : QObject(parent)
 {
 	mCrawlerPersonalThread=new QThread(this);
+	mLoadingIntervalTimer=new QTimer(this);
 	mPhantom=new PhantomWrapper(this);
 	connect(mCrawlerPersonalThread, &QThread::started, this, &Crawler::onNewThreadStarted);
 	connect(mCrawlerPersonalThread, &QThread::finished, this, &Crawler::onNewThreadFinished);
 	connect(mPhantom, &PhantomWrapper::pageHasBeenLoaded, this, &Crawler::onPageHasBeenLoaded);
+	connect(mLoadingIntervalTimer, &QTimer::timeout, this, &Crawler::loadNextPage);
+	mLoadingIntervalTimer->setInterval(1000);
+	mLoadingIntervalTimer->setSingleShot(1);
 }
 
-QMap<QString, int> Crawler::extractWordsAndFrequency(const QString& text)
+QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)
 {
+	qDebug("Crawler::extractWordsAndFrequency()");
 	QMap<QString, int> wordMap;
 	QStringList tokens = text.toLower().split(QRegularExpression("\\W+"), Qt::SkipEmptyParts);
 	for (const QString &token : tokens)
 	{
-		if (token.length())
+		if (token.length()>0 && token.length()<32)
 		{
-			qDebug()<<token;
 			wordMap[token] += 1;
+			qDebug()<<token;
 		}
 	}
 	return wordMap;
@@ -33,20 +38,32 @@ QMap<QString, int> Crawler::extractWordsAndFrequency(const QString& text)
 void Crawler::onNewThreadStarted()
 {
 	qDebug("Crawler::onNewThreadStarted()");
-	if (!mURLQueue.isEmpty())
-	{
-		mPhantom->loadPage(mURLQueue.dequeue());
-	}
+	emit started(this);
+	loadNextPage();
 }
 
 void Crawler::onNewThreadFinished()
 {
 	qDebug("Crawler::onNewThreadFinished()");
+	emit finished(this);
 	qDebug()<<"Visited Pages:\n"<<sVisitedPages.keys();
 }
 
+void Crawler::loadNextPage()
+{
+	qDebug("Crawler::loadNextPage()");
+	if (!mURLQueue.isEmpty())
+	{
+		qDebug() << mURLQueue.size() << "URLs in queue";
+		mPhantom->loadPage(mURLQueue.dequeue());
+	}
+}
+
+static int visited_n=0;
+
 void Crawler::onPageHasBeenLoaded()
 {
+	qDebug("Crawler::onPageHasBeenLoaded()");
 	QString pageURL = mPhantom->getPageURL();
 	QString plainText = mPhantom->getPagePlainText();
 	PageData data;
@@ -68,15 +85,14 @@ void Crawler::onPageHasBeenLoaded()
 	}
 
 	//for debug purpose
-	if(sVisitedPages.size()>255)
+	if(++visited_n>12)
 	{
 		stop();
 		return;
 	}
-
-	if (!mURLQueue.isEmpty())
+	else
 	{
-		mPhantom->loadPage(mURLQueue.dequeue());
+		mLoadingIntervalTimer->start();
 	}
 }
 
@@ -89,7 +105,6 @@ void Crawler::start()
 	}
 	this->moveToThread(mCrawlerPersonalThread);
 	mCrawlerPersonalThread->start();
-	emit started(this);
 }
 
 void Crawler::stop()
@@ -98,14 +113,14 @@ void Crawler::stop()
 	mURLQueue.clear();
 	mCrawlerPersonalThread->quit();
 	mCrawlerPersonalThread->wait();
-	emit finished(this);
 }
 
 void Crawler::addURLToQueue(const QString &url_string)
 {
 	qDebug("Crawler::addURLToQueue()");
-	bool badURL=0;
 	QUrl newUrl(url_string);
+	bool badURL=0;
+	qDebug() << "host" << newUrl.host();
 	sBlacklistMutex.lock();
 	if (sBlacklist.contains(newUrl.host()))
 	{
@@ -116,11 +131,27 @@ void Crawler::addURLToQueue(const QString &url_string)
 	if (!badURL)
 	{
 		sVisitedPagesMutex.lock();
-		if (!sVisitedPages.contains(url_string))
+		if (sVisitedPages.contains(url_string))
 		{
-			qDebug() << "Adding new URL into processing queue:" << url_string;
+			qDebug() << "Skipping visited URL:" << url_string;
+		}
+		else if (mURLQueue.contains(url_string))
+		{
+			qDebug() << "Skipping enqueued URL:" << url_string;
+		}
+		else
+		{
 			mURLQueue.enqueue(url_string);
+			qDebug() << "New URL has been added into processing queue:" << url_string;
 		}
 		sVisitedPagesMutex.unlock();
 	}
+}
+
+void Crawler::addURLToBlacklist(const QString &url_string)
+{
+	qDebug("Crawler::addURLToQueue()");
+	sBlacklistMutex.lock();
+	sBlacklist.insert(url_string);
+	sBlacklistMutex.unlock();
 }
