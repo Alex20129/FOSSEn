@@ -83,7 +83,8 @@ void PhantomWrapper::onPageLoadingFinished()
 	int pageHtmlFile = open("page.html", O_WRONLY | O_CREAT, 0664);
 	if(pageHtmlFile>=0)
 	{
-		write(pageHtmlFile, getPageHtml().toStdString().data(), getPageHtml().toStdString().length());
+		QByteArray PageHtmlUTF8=getPageHtml().toUtf8();
+		write(pageHtmlFile, PageHtmlUTF8.data(), PageHtmlUTF8.length());
 		close(pageHtmlFile);
 	}
 
@@ -91,7 +92,8 @@ void PhantomWrapper::onPageLoadingFinished()
 	int pageTextFile = open("page.txt", O_WRONLY | O_CREAT, 0664);
 	if(pageTextFile>=0)
 	{
-		write(pageTextFile, getPagePlainText().toStdString().data(), getPagePlainText().toStdString().length());
+		QByteArray PagePlainTextUTF8=getPagePlainText().toUtf8();
+		write(pageTextFile, PagePlainTextUTF8.data(), PagePlainTextUTF8.length());
 		close(pageTextFile);
 	}
 
@@ -100,9 +102,11 @@ void PhantomWrapper::onPageLoadingFinished()
 	int pageLinksFile = open("page_links.txt", O_WRONLY | O_CREAT, 0664);
 	if(pageLinksFile>=0)
 	{
+		QByteArray linkUTF8;
 		for(QString link : PageLinksList)
 		{
-			write(pageLinksFile, link.toStdString().data(), link.toStdString().length());
+			linkUTF8=link.toUtf8();
+			write(pageLinksFile, linkUTF8.data(), linkUTF8.length());
 			write(pageLinksFile, "\n", 1);
 		}
 		close(pageLinksFile);
