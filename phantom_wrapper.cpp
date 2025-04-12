@@ -79,6 +79,7 @@ QStringList PhantomWrapper::extractPageLinks() const
 
 void PhantomWrapper::onPageLoadingFinished()
 {
+	//for debug purpose
 	int pageHtmlFile = open("page.html", O_WRONLY | O_CREAT, 0664);
 	if(pageHtmlFile>=0)
 	{
@@ -86,6 +87,7 @@ void PhantomWrapper::onPageLoadingFinished()
 		close(pageHtmlFile);
 	}
 
+	//for debug purpose
 	int pageTextFile = open("page.txt", O_WRONLY | O_CREAT, 0664);
 	if(pageTextFile>=0)
 	{
@@ -93,6 +95,7 @@ void PhantomWrapper::onPageLoadingFinished()
 		close(pageTextFile);
 	}
 
+	//for debug purpose
 	QStringList PageLinksList = extractPageLinks();
 	int pageLinksFile = open("page_links.txt", O_WRONLY | O_CREAT, 0664);
 	if(pageLinksFile>=0)

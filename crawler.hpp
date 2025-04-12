@@ -22,6 +22,7 @@ class Crawler : public QObject
 	QTimer *mLoadingIntervalTimer;
 	PhantomWrapper *mPhantom;
 	QQueue<QString> mURLQueue;
+	QMutex mURLQueueMutex;
 	static QHash<QString, PageData> sVisitedPages;
 	static QMutex sVisitedPagesMutex;
 	static QSet<QString> sBlacklist;

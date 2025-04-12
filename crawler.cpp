@@ -11,12 +11,12 @@ Crawler::Crawler(QObject *parent) : QObject(parent)
 	mCrawlerPersonalThread=new QThread(this);
 	mLoadingIntervalTimer=new QTimer(this);
 	mPhantom=new PhantomWrapper(this);
+	mLoadingIntervalTimer->setInterval(1000);
+	mLoadingIntervalTimer->setSingleShot(1);
 	connect(mCrawlerPersonalThread, &QThread::started, this, &Crawler::onNewThreadStarted);
 	connect(mCrawlerPersonalThread, &QThread::finished, this, &Crawler::onNewThreadFinished);
 	connect(mPhantom, &PhantomWrapper::pageHasBeenLoaded, this, &Crawler::onPageHasBeenLoaded);
 	connect(mLoadingIntervalTimer, &QTimer::timeout, this, &Crawler::loadNextPage);
-	mLoadingIntervalTimer->setInterval(1000);
-	mLoadingIntervalTimer->setSingleShot(1);
 }
 
 QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)
@@ -39,7 +39,7 @@ void Crawler::onNewThreadStarted()
 {
 	qDebug("Crawler::onNewThreadStarted()");
 	emit started(this);
-	loadNextPage();
+	mLoadingIntervalTimer->start();
 }
 
 void Crawler::onNewThreadFinished()
@@ -52,11 +52,13 @@ void Crawler::onNewThreadFinished()
 void Crawler::loadNextPage()
 {
 	qDebug("Crawler::loadNextPage()");
+	mURLQueueMutex.lock();
 	if (!mURLQueue.isEmpty())
 	{
 		qDebug() << mURLQueue.size() << "URLs in queue";
 		mPhantom->loadPage(mURLQueue.dequeue());
 	}
+	mURLQueueMutex.unlock();
 }
 
 static int visited_n=0;
@@ -131,6 +133,7 @@ void Crawler::addURLToQueue(const QString &url_string)
 	if (!badURL)
 	{
 		sVisitedPagesMutex.lock();
+		mURLQueueMutex.lock();
 		if (sVisitedPages.contains(url_string))
 		{
 			qDebug() << "Skipping visited URL:" << url_string;
@@ -144,6 +147,7 @@ void Crawler::addURLToQueue(const QString &url_string)
 			mURLQueue.enqueue(url_string);
 			qDebug() << "New URL has been added into processing queue:" << url_string;
 		}
+		mURLQueueMutex.unlock();
 		sVisitedPagesMutex.unlock();
 	}
 }
