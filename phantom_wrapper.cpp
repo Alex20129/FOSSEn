@@ -91,8 +91,8 @@ void PhantomWrapper::onPageLoadingFinished()
 	QStringList PageLinksList = extractPageLinks();
 	for(QString link : PageLinksList)
 	{
-		write(pageTextFile, link.toStdString().data(), link.toStdString().length());
-		write(pageTextFile, "\n", 2);
+		write(pageLinksFile, link.toStdString().data(), link.toStdString().length());
+		write(pageLinksFile, "\n", 1);
 	}
 	close(pageLinksFile);
 
