@@ -52,13 +52,18 @@ void Crawler::onNewThreadFinished()
 void Crawler::loadNextPage()
 {
 	qDebug("Crawler::loadNextPage()");
+	QString nextURL;
 	mURLQueueMutex.lock();
 	if (!mURLQueue.isEmpty())
 	{
-		qDebug() << mURLQueue.size() << "URLs in queue";
-		mPhantom->loadPage(mURLQueue.dequeue());
+		nextURL=mURLQueue.dequeue();
 	}
 	mURLQueueMutex.unlock();
+	qDebug() << mURLQueue.size() << "URLs in queue";
+	if(nextURL.length())
+	{
+		mPhantom->loadPage(nextURL);
+	}
 }
 
 //for debug purpose
