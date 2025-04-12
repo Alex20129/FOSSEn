@@ -80,21 +80,30 @@ QStringList PhantomWrapper::extractPageLinks() const
 void PhantomWrapper::onPageLoadingFinished()
 {
 	int pageHtmlFile = open("page.html", O_WRONLY | O_CREAT, 0664);
-	write(pageHtmlFile, getPageHtml().toStdString().data(), getPageHtml().toStdString().length());
-	close(pageHtmlFile);
+	if(pageHtmlFile>=0)
+	{
+		write(pageHtmlFile, getPageHtml().toStdString().data(), getPageHtml().toStdString().length());
+		close(pageHtmlFile);
+	}
 
 	int pageTextFile = open("page.txt", O_WRONLY | O_CREAT, 0664);
-	write(pageTextFile, getPagePlainText().toStdString().data(), getPagePlainText().toStdString().length());
-	close(pageTextFile);
-
-	int pageLinksFile = open("page_links.txt", O_WRONLY | O_CREAT, 0664);
-	QStringList PageLinksList = extractPageLinks();
-	for(QString link : PageLinksList)
+	if(pageTextFile>=0)
 	{
-		write(pageLinksFile, link.toStdString().data(), link.toStdString().length());
-		write(pageLinksFile, "\n", 1);
+		write(pageTextFile, getPagePlainText().toStdString().data(), getPagePlainText().toStdString().length());
+		close(pageTextFile);
 	}
-	close(pageLinksFile);
+
+	QStringList PageLinksList = extractPageLinks();
+	int pageLinksFile = open("page_links.txt", O_WRONLY | O_CREAT, 0664);
+	if(pageLinksFile>=0)
+	{
+		for(QString link : PageLinksList)
+		{
+			write(pageLinksFile, link.toStdString().data(), link.toStdString().length());
+			write(pageLinksFile, "\n", 1);
+		}
+		close(pageLinksFile);
+	}
 
 	emit(pageHasBeenLoaded());
 }
