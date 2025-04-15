@@ -19,6 +19,14 @@ Crawler::Crawler(QObject *parent) : QObject(parent)
 	connect(mLoadingIntervalTimer, &QTimer::timeout, this, &Crawler::loadNextPage);
 }
 
+static const QSet<QString> stopWords =
+{
+	"the", "and", "or", "a",
+	"an", "in", "on", "at",
+	"to", "for", "of", "with",
+	"by", "was", "so", "such"
+};
+
 QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)
 {
 	qDebug("Crawler::extractWordsAndFrequency()");
@@ -26,12 +34,15 @@ QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)
 	QStringList tokens = text.toLower().split(QRegularExpression("\\W+"), Qt::SkipEmptyParts);
 	for (const QString &token : tokens)
 	{
-		if (token.length()>0 && token.length()<32)
+		if (token.length()>1 && token.length()<32)
 		{
-			wordMap[token] += 1;
-			qDebug()<<token;
+			if (!stopWords.contains(token))
+			{
+				wordMap[token] += 1;
+			}
 		}
 	}
+	qDebug()<<wordMap.keys();
 	return wordMap;
 }
 
