@@ -29,7 +29,8 @@ QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)
 		"the", "and", "or", "a",
 		"an", "in", "on", "at",
 		"to", "for", "of", "with",
-		"by", "was", "so", "such"
+		"by", "was", "so", "such",
+		"be", "as", "is"
 	};
 	QMap<QString, int> wordMap;
 	QStringList tokens = text.toLower().split(wordsRegex, Qt::SkipEmptyParts);
