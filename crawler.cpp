@@ -19,24 +19,25 @@ Crawler::Crawler(QObject *parent) : QObject(parent)
 	connect(mLoadingIntervalTimer, &QTimer::timeout, this, &Crawler::loadNextPage);
 }
 
-static const QSet<QString> stopWords =
-{
-	"the", "and", "or", "a",
-	"an", "in", "on", "at",
-	"to", "for", "of", "with",
-	"by", "was", "so", "such"
-};
-
 QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)
 {
 	qDebug("Crawler::extractWordsAndFrequency()");
+	static const QRegularExpression wordsRegex("\\W+");
+	static const QRegularExpression digitsRegex("^[0-9]+$");
+	static const QSet<QString> stopWords =
+	{
+		"the", "and", "or", "a",
+		"an", "in", "on", "at",
+		"to", "for", "of", "with",
+		"by", "was", "so", "such"
+	};
 	QMap<QString, int> wordMap;
-	QStringList tokens = text.toLower().split(QRegularExpression("\\W+"), Qt::SkipEmptyParts);
+	QStringList tokens = text.toLower().split(wordsRegex, Qt::SkipEmptyParts);
 	for (const QString &token : tokens)
 	{
 		if (token.length()>1 && token.length()<32)
 		{
-			if (!stopWords.contains(token))
+			if (!stopWords.contains(token) && !digitsRegex.match(token).hasMatch())
 			{
 				wordMap[token] += 1;
 			}

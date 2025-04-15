@@ -1609,14 +1609,16 @@ bool WebPage::switchToChildFrame(const int framePosition) //< deprecated
 
 void WebPage::switchToMainFrame()
 {
-	if (m_currentFrame != m_mainFrame) {
+	if (m_currentFrame != m_mainFrame)
+	{
 		this->changeCurrentFrame(m_mainFrame);
 	}
 }
 
 bool WebPage::switchToParentFrame()
 {
-	if (m_currentFrame->parentFrame()) {
+	if (m_currentFrame->parentFrame())
+	{
 		this->changeCurrentFrame(m_currentFrame->parentFrame());
 		return true;
 	}
@@ -1646,7 +1648,8 @@ QString WebPage::focusedFrameName() const
 static void injectCallbacksObjIntoFrame(QWebFrame* frame, WebpageCallbacks* callbacksObject)
 {
 	// Inject object only if it's not already present
-	if (frame->evaluateJavaScript(CALLBACKS_OBJECT_PRESENT).toBool() == false) {
+	if (frame->evaluateJavaScript(CALLBACKS_OBJECT_PRESENT).toBool() == false)
+	{
 		// Decorate the window object in this frame (object ownership left to the creator/parent)
 		frame->addToJavaScriptWindowObject(CALLBACKS_OBJECT_NAME, callbacksObject, QWebFrame::QtOwnership);
 		frame->evaluateJavaScript(CALLBACKS_OBJECT_INJECTION);
@@ -1656,7 +1659,6 @@ static void injectCallbacksObjIntoFrame(QWebFrame* frame, WebpageCallbacks* call
 void WebPage::setupFrame(QWebFrame* frame)
 {
 	qDebug() << "WebPage - setupFrame" << (frame == Q_NULLPTR ? "" : frame->frameName());
-
 	// Inject the Callbacks object in the main frame
 	injectCallbacksObjIntoFrame(frame == Q_NULLPTR ? m_mainFrame : frame, m_callbacks);
 }
