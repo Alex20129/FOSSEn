@@ -30,6 +30,8 @@ int main(int argc, char** argv)
 	myCrawler->addURLToBlacklist(QString("www.dzen.ru"));
 	myCrawler->addURLToBlacklist(QString("dzen.ru"));
 	myCrawler->addURLToBlacklist(QString("www.facebook.com"));
+	myCrawler->addURLToBlacklist(QString("vk.com"));
+	myCrawler->addURLToBlacklist(QString("vk.ru"));
 
 	QTimer::singleShot(0, myCrawler, &Crawler::start);
 

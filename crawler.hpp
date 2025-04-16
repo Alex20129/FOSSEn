@@ -6,7 +6,11 @@
 #include <QMutex>
 #include <QTimer>
 #include <QQueue>
+#include <QRandomGenerator>
 #include "phantom_wrapper.hpp"
+
+#define PAGE_LOADING_INTERVAL_MIN 960
+#define PAGE_LOADING_INTERVAL_MAX 3840
 
 struct PageData
 {
@@ -18,6 +22,7 @@ struct PageData
 class Crawler : public QObject
 {
 	Q_OBJECT
+	QRandomGenerator *mRNG;
 	QThread *mCrawlerPersonalThread;
 	QTimer *mLoadingIntervalTimer;
 	PhantomWrapper *mPhantom;

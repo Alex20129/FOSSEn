@@ -20,6 +20,7 @@ private slots:
 	void onPageLoadingFinished();
 public:
 	PhantomWrapper(QObject *parent=nullptr);
+	void loadCookiesFromFile(const QString &pathToFile);
 	void loadPage(const QString &url);
 	QString getPageHtml() const;
 	QString getPagePlainText() const;

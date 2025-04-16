@@ -8,10 +8,11 @@ QMutex Crawler::sBlacklistMutex;
 
 Crawler::Crawler(QObject *parent) : QObject(parent)
 {
+	uint32_t rngSeed=QDateTime::currentSecsSinceEpoch()+reinterpret_cast<uintptr_t>(this);
+	mRNG=new QRandomGenerator(rngSeed);
 	mCrawlerPersonalThread=new QThread(this);
 	mLoadingIntervalTimer=new QTimer(this);
 	mPhantom=new PhantomWrapper(this);
-	mLoadingIntervalTimer->setInterval(1000);
 	mLoadingIntervalTimer->setSingleShot(1);
 	connect(mCrawlerPersonalThread, &QThread::started, this, &Crawler::onNewThreadStarted);
 	connect(mCrawlerPersonalThread, &QThread::finished, this, &Crawler::onNewThreadFinished);
@@ -52,6 +53,7 @@ void Crawler::onNewThreadStarted()
 {
 	qDebug("Crawler::onNewThreadStarted()");
 	emit started(this);
+	mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
 	mLoadingIntervalTimer->start();
 }
 
@@ -113,6 +115,7 @@ void Crawler::onPageHasBeenLoaded()
 	}
 	else
 	{
+		mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
 		mLoadingIntervalTimer->start();
 	}
 }
@@ -140,34 +143,37 @@ void Crawler::addURLToQueue(const QString &url_string)
 {
 	qDebug("Crawler::addURLToQueue()");
 	QUrl newUrl(url_string);
-	bool badURL=0;
-	qDebug() << "host" << newUrl.host();
+	bool skipThisURL=0;
 	sBlacklistMutex.lock();
 	if (sBlacklist.contains(newUrl.host()))
 	{
+		skipThisURL=1;
 		qDebug() << "Skipping blacklisted host:" << newUrl.host();
-		badURL=1;
 	}
 	sBlacklistMutex.unlock();
-	if (!badURL)
+	if (!skipThisURL)
 	{
 		sVisitedPagesMutex.lock();
-		mURLQueueMutex.lock();
 		if (sVisitedPages.contains(url_string))
 		{
+			skipThisURL=1;
 			qDebug() << "Skipping visited URL:" << url_string;
 		}
-		else if (mURLQueue.contains(url_string))
+		sVisitedPagesMutex.unlock();
+	}
+	if (!skipThisURL)
+	{
+		mURLQueueMutex.lock();
+		if (mURLQueue.contains(url_string))
 		{
 			qDebug() << "Skipping enqueued URL:" << url_string;
 		}
 		else
 		{
 			mURLQueue.enqueue(url_string);
-			qDebug() << "New URL has been added into processing queue:" << url_string;
+			qDebug() << "Add new URL into processing queue:" << url_string;
 		}
 		mURLQueueMutex.unlock();
-		sVisitedPagesMutex.unlock();
 	}
 }
 

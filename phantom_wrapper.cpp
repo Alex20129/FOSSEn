@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <QApplication>
 #include <QWebElement>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
 
 PhantomWrapper::PhantomWrapper(QObject *parent) : QObject(parent)
 {
@@ -15,6 +18,53 @@ PhantomWrapper::PhantomWrapper(QObject *parent) : QObject(parent)
 	mPage=new WebPage(this);
 	mPage->setCookieJar(mCookieJar);
 	connect(mPage, &WebPage::loadFinished, this, &PhantomWrapper::onPageLoadingFinished);
+}
+
+void PhantomWrapper::loadCookiesFromFile(const QString &pathToFile)
+{
+	QList<QNetworkCookie> cookies;
+	QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "firefox_cookies");
+	db.setDatabaseName(pathToFile);
+	if (!db.open())
+	{
+		qCritical() << "Failed to open cookies database:" << db.lastError().text();
+		return;
+	}
+	QSqlQuery query(db);
+	if (!query.exec("SELECT host, path, isSecure, expiry, name, value FROM moz_cookies"))
+	{
+		qCritical() << "Failed to query cookies:" << query.lastError().text();
+		db.close();
+		return;
+	}
+	while (query.next())
+	{
+		QString host = query.value("host").toString();
+		QString path = query.value("path").toString();
+		bool isSecure = query.value("isSecure").toBool();
+		qint64 expiry = query.value("expiry").toLongLong();
+		QString name = query.value("name").toString();
+		QString value = query.value("value").toString();
+		if (expiry != 0 && expiry < QDateTime::currentDateTime().toSecsSinceEpoch())
+		{
+			continue;
+		}
+		QNetworkCookie cookie(name.toUtf8(), value.toUtf8());
+		cookie.setDomain(host);
+		cookie.setPath(path);
+		cookie.setSecure(isSecure);
+		if (expiry != 0)
+		{
+			cookie.setExpirationDate(QDateTime::fromSecsSinceEpoch(expiry));
+		}
+		cookies.append(cookie);
+	}
+	db.close();
+	QSqlDatabase::removeDatabase("firefox_cookies");
+	for (const QNetworkCookie &cookie : cookies)
+	{
+		mCookieJar->insertCookie(cookie);
+	}
 }
 
 void PhantomWrapper::loadPage(const QString &url)
