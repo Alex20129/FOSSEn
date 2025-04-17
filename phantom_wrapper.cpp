@@ -62,19 +62,16 @@ void PhantomWrapper::loadCookiesFromFireFoxProfile(const QString &pathToFile) co
 
 void PhantomWrapper::loadCookiesFromFile(const QString &pathToFile) const
 {
-	qDebug("PhantomWrapper::loadCookiesFromFile()");
 	QList<QNetworkCookie> cookies;
 	QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "firefox_cookies");
 	db.setDatabaseName(pathToFile);
 	if (!db.open())
 	{
-		qCritical() << "Failed to open cookies database:" << db.lastError().text();
 		return;
 	}
 	QSqlQuery query(db);
 	if (!query.exec("SELECT host, path, isSecure, expiry, name, value FROM moz_cookies"))
 	{
-		qCritical() << "Failed to query cookies:" << query.lastError().text();
 		db.close();
 		return;
 	}
@@ -99,7 +96,6 @@ void PhantomWrapper::loadCookiesFromFile(const QString &pathToFile) const
 			cookie.setExpirationDate(QDateTime::fromSecsSinceEpoch(expiry));
 		}
 		cookies.append(cookie);
-		qDebug()<<cookie;
 	}
 	db.close();
 	QSqlDatabase::removeDatabase("firefox_cookies");
