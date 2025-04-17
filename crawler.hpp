@@ -28,7 +28,7 @@ class Crawler : public QObject
 	QList<QString> mURLList;
 	QMutex mURLQueueMutex;
 	static QHash<QString, PageData> sVisitedPages;
-	static QSet<QString> sBlacklist;
+	static QSet<QString> sHostnameBlacklist;
 	static QMutex sUnwantedLinksMutex;
 	QMap<QString, int> extractWordsAndFrequency(const QString &text);
 signals:
@@ -45,7 +45,7 @@ public:
 	void start();
 	void stop();
 	void addURLToQueue(const QString &url_string);
-	void addURLToBlacklist(const QString &url_string);
+	void addHostnameToBlacklist(const QString &hostname);
 };
 
 #endif // CRAWLER_HPP

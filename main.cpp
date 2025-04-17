@@ -25,20 +25,22 @@ int main(int argc, char** argv)
 	myCrawler->addURLToQueue(QString("https://www.lostfilm.tv/movies/"));
 	myCrawler->addURLToQueue(QString("https://habr.com/en/articles/"));
 
-	myCrawler->addURLToBlacklist(QString("www.linkedin.com"));
-	myCrawler->addURLToBlacklist(QString("linkedin.com"));
-	myCrawler->addURLToBlacklist(QString("www.instagram.com"));
-	myCrawler->addURLToBlacklist(QString("instagram.com"));
-	myCrawler->addURLToBlacklist(QString("www.google.com"));
-	myCrawler->addURLToBlacklist(QString("www.yandex.ru"));
-	myCrawler->addURLToBlacklist(QString("www.ya.ru"));
-	myCrawler->addURLToBlacklist(QString("www.yahoo.com"));
-	myCrawler->addURLToBlacklist(QString("www.dzen.ru"));
-	myCrawler->addURLToBlacklist(QString("dzen.ru"));
-	myCrawler->addURLToBlacklist(QString("www.facebook.com"));
-	myCrawler->addURLToBlacklist(QString("facebook.com"));
-	myCrawler->addURLToBlacklist(QString("vk.com"));
-	myCrawler->addURLToBlacklist(QString("vk.ru"));
+	myCrawler->addHostnameToBlacklist(QString("www.linkedin.com"));
+	myCrawler->addHostnameToBlacklist(QString("linkedin.com"));
+	myCrawler->addHostnameToBlacklist(QString("www.instagram.com"));
+	myCrawler->addHostnameToBlacklist(QString("instagram.com"));
+	myCrawler->addHostnameToBlacklist(QString("www.google.com"));
+	myCrawler->addHostnameToBlacklist(QString("www.yandex.ru"));
+	myCrawler->addHostnameToBlacklist(QString("www.ya.ru"));
+	myCrawler->addHostnameToBlacklist(QString("www.yahoo.com"));
+	myCrawler->addHostnameToBlacklist(QString("www.dzen.ru"));
+	myCrawler->addHostnameToBlacklist(QString("dzen.ru"));
+	myCrawler->addHostnameToBlacklist(QString("www.facebook.com"));
+	myCrawler->addHostnameToBlacklist(QString("facebook.com"));
+	myCrawler->addHostnameToBlacklist(QString("vk.com"));
+	myCrawler->addHostnameToBlacklist(QString("vk.ru"));
+
+	return 555;
 
 	QTimer::singleShot(0, myCrawler, &Crawler::start);
 

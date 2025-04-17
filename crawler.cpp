@@ -2,7 +2,7 @@
 #include "crawler.hpp"
 
 QHash<QString, PageData> Crawler::sVisitedPages;
-QSet<QString> Crawler::sBlacklist;
+QSet<QString> Crawler::sHostnameBlacklist;
 QMutex Crawler::sUnwantedLinksMutex;
 
 Crawler::Crawler(QObject *parent) : QObject(parent)
@@ -148,7 +148,7 @@ void Crawler::addURLToQueue(const QString &url_string)
 	QUrl newUrl(url_string);
 	bool skipThisURL=0;
 	sUnwantedLinksMutex.lock();
-	if (sBlacklist.contains(newUrl.host()))
+	if (sHostnameBlacklist.contains(newUrl.host()))
 	{
 		skipThisURL=1;
 		qDebug() << "Skipping blacklisted host:" << newUrl.host();
@@ -175,10 +175,14 @@ void Crawler::addURLToQueue(const QString &url_string)
 	}
 }
 
-void Crawler::addURLToBlacklist(const QString &url_string)
+void Crawler::addHostnameToBlacklist(const QString &hostname)
 {
-	qDebug("Crawler::addURLToBlacklist()");
+	qDebug("Crawler::addHostToBlacklist()");
 	sUnwantedLinksMutex.lock();
-	sBlacklist.insert(url_string);
+	if (!sHostnameBlacklist.contains(hostname))
+	{
+		sHostnameBlacklist.insert(hostname);
+		qDebug() << "Host address has been added to the blacklist:" << hostname;
+	}
 	sUnwantedLinksMutex.unlock();
 }
