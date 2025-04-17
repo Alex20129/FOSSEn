@@ -112,7 +112,7 @@ void Crawler::onPageHasBeenLoaded()
 	}
 
 	//for debug purpose
-	if(++visited_n>12)
+	if(++visited_n>30)
 	{
 		stop();
 		return;
@@ -138,6 +138,8 @@ void Crawler::start()
 void Crawler::stop()
 {
 	qDebug("Crawler::stop()");
+	mLoadingIntervalTimer->stop();
+	qDebug() << "unvisited pages:" << mURLList;
 	mURLList.clear();
 	mCrawlerPersonalThread->quit();
 }
