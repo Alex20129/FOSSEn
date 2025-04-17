@@ -19,26 +19,21 @@ int main(int argc, char** argv)
 
 	QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QApplication::quit);
 
-	myCrawler->addURLToQueue(QString("https://stackoverflow.com/search?q=malloc"));
 	myCrawler->addURLToQueue(QString("https://www.google.com/search?q=fast+sorting+algorithm"));
 	myCrawler->addURLToQueue(QString("https://search.yahoo.com/search?p=fast+sorting+algorithm"));
+	myCrawler->addURLToQueue(QString("https://ya.ru/search/?text=fast+sorting+algorithm"));
+	myCrawler->addURLToQueue(QString("https://stackoverflow.com/search?q=malloc"));
 	myCrawler->addURLToQueue(QString("https://www.lostfilm.tv/movies/"));
+	myCrawler->addURLToQueue(QString("https://github.com/yacy/"));
 	myCrawler->addURLToQueue(QString("https://habr.com/en/articles/"));
 
 	myCrawler->addHostnameToBlacklist(QString("www.linkedin.com"));
-	myCrawler->addHostnameToBlacklist(QString("linkedin.com"));
 	myCrawler->addHostnameToBlacklist(QString("www.instagram.com"));
-	myCrawler->addHostnameToBlacklist(QString("instagram.com"));
-	myCrawler->addHostnameToBlacklist(QString("www.google.com"));
-	myCrawler->addHostnameToBlacklist(QString("www.yandex.ru"));
-	myCrawler->addHostnameToBlacklist(QString("www.ya.ru"));
-	myCrawler->addHostnameToBlacklist(QString("www.yahoo.com"));
 	myCrawler->addHostnameToBlacklist(QString("www.dzen.ru"));
-	myCrawler->addHostnameToBlacklist(QString("dzen.ru"));
 	myCrawler->addHostnameToBlacklist(QString("www.facebook.com"));
-	myCrawler->addHostnameToBlacklist(QString("facebook.com"));
-	myCrawler->addHostnameToBlacklist(QString("vk.com"));
-	myCrawler->addHostnameToBlacklist(QString("vk.ru"));
+	myCrawler->addHostnameToBlacklist(QString("www.vk.com"));
+	myCrawler->addHostnameToBlacklist(QString("www.vk.ru"));
+	myCrawler->addHostnameToBlacklist(QString("www.tbank.ru"));
 
 	QTimer::singleShot(0, myCrawler, &Crawler::start);
 

@@ -180,11 +180,22 @@ void Crawler::addURLToQueue(const QString &url_string)
 void Crawler::addHostnameToBlacklist(const QString &hostname)
 {
 	qDebug("Crawler::addHostToBlacklist()");
+	QString shortName;
+	if(hostname.startsWith("www."))
+	{
+		shortName=hostname;
+		shortName.remove(0, 4);
+	}
 	sUnwantedLinksMutex.lock();
 	if (!sHostnameBlacklist.contains(hostname))
 	{
 		sHostnameBlacklist.insert(hostname);
 		qDebug() << "Host address has been added to the blacklist:" << hostname;
+		if(shortName.length())
+		{
+			sHostnameBlacklist.insert(shortName);
+			qDebug() << "Host address has been added to the blacklist:" << shortName;
+		}
 	}
 	sUnwantedLinksMutex.unlock();
 }
