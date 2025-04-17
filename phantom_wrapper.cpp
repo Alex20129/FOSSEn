@@ -168,36 +168,44 @@ QStringList PhantomWrapper::extractPageLinks() const
 void PhantomWrapper::onPageLoadingFinished()
 {
 	//for debug purpose
-	int pageHtmlFile = open("page.html", O_WRONLY | O_CREAT, 0664);
-	if(pageHtmlFile>=0)
+	QFile pageHTMLFile("page.html");
+	if (pageHTMLFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
-		QByteArray PageHtmlUTF8=getPageHtml().toUtf8();
-		write(pageHtmlFile, PageHtmlUTF8.data(), PageHtmlUTF8.length());
-		close(pageHtmlFile);
+		pageHTMLFile.write(getPageHtml().toUtf8());
+		pageHTMLFile.close();
+	}
+	else
+	{
+		qWarning() << "Failed to open page.html";
 	}
 
 	//for debug purpose
-	int pageTextFile = open("page.txt", O_WRONLY | O_CREAT, 0664);
-	if(pageTextFile>=0)
+	QFile pageTXTFile("page.txt");
+	if (pageTXTFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
-		QByteArray PagePlainTextUTF8=getPagePlainText().toUtf8();
-		write(pageTextFile, PagePlainTextUTF8.data(), PagePlainTextUTF8.length());
-		close(pageTextFile);
+		pageTXTFile.write(getPagePlainText().toUtf8());
+		pageTXTFile.close();
+	}
+	else
+	{
+		qWarning() << "Failed to open page.txt";
 	}
 
 	//for debug purpose
 	QStringList PageLinksList = extractPageLinks();
-	int pageLinksFile = open("page_links.txt", O_WRONLY | O_CREAT, 0664);
-	if(pageLinksFile>=0)
+	QFile pageLinksFile("page_links.txt");
+	if (pageLinksFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
-		QByteArray linkUTF8;
 		for(QString link : PageLinksList)
 		{
-			linkUTF8=link.toUtf8();
-			write(pageLinksFile, linkUTF8.data(), linkUTF8.length());
-			write(pageLinksFile, "\n", 1);
+			pageLinksFile.write(link.toUtf8());
+			pageLinksFile.write("\n");
 		}
-		close(pageLinksFile);
+		pageLinksFile.close();
+	}
+	else
+	{
+		qWarning() << "Failed to open page_links.txt";
 	}
 
 	emit(pageHasBeenLoaded());

@@ -28,9 +28,8 @@ class Crawler : public QObject
 	QList<QString> mURLList;
 	QMutex mURLQueueMutex;
 	static QHash<QString, PageData> sVisitedPages;
-	static QMutex sVisitedPagesMutex;
 	static QSet<QString> sBlacklist;
-	static QMutex sBlacklistMutex;
+	static QMutex sUnwantedLinksMutex;
 	QMap<QString, int> extractWordsAndFrequency(const QString &text);
 signals:
 	void started(Crawler *crawler);

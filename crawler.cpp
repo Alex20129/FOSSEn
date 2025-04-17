@@ -2,9 +2,8 @@
 #include "crawler.hpp"
 
 QHash<QString, PageData> Crawler::sVisitedPages;
-QMutex Crawler::sVisitedPagesMutex;
 QSet<QString> Crawler::sBlacklist;
-QMutex Crawler::sBlacklistMutex;
+QMutex Crawler::sUnwantedLinksMutex;
 
 Crawler::Crawler(QObject *parent) : QObject(parent)
 {
@@ -102,9 +101,9 @@ void Crawler::onPageHasBeenLoaded()
 	data.title = mPhantom->getPageTitle();
 	data.wordsAndFrequency = extractWordsAndFrequency(plainText);
 
-	sVisitedPagesMutex.lock();
+	sUnwantedLinksMutex.lock();
 	sVisitedPages.insert(pageURL, data);
-	sVisitedPagesMutex.unlock();
+	sUnwantedLinksMutex.unlock();
 
 	QStringList links = mPhantom->extractPageLinks();
 	for (const QString &link : links)
@@ -148,23 +147,18 @@ void Crawler::addURLToQueue(const QString &url_string)
 	qDebug("Crawler::addURLToQueue()");
 	QUrl newUrl(url_string);
 	bool skipThisURL=0;
-	sBlacklistMutex.lock();
+	sUnwantedLinksMutex.lock();
 	if (sBlacklist.contains(newUrl.host()))
 	{
 		skipThisURL=1;
 		qDebug() << "Skipping blacklisted host:" << newUrl.host();
 	}
-	sBlacklistMutex.unlock();
-	if (!skipThisURL)
+	else if (sVisitedPages.contains(url_string))
 	{
-		sVisitedPagesMutex.lock();
-		if (sVisitedPages.contains(url_string))
-		{
-			skipThisURL=1;
-			qDebug() << "Skipping visited URL:" << url_string;
-		}
-		sVisitedPagesMutex.unlock();
+		skipThisURL=1;
+		qDebug() << "Skipping visited URL:" << url_string;
 	}
+	sUnwantedLinksMutex.unlock();
 	if (!skipThisURL)
 	{
 		mURLQueueMutex.lock();
@@ -183,8 +177,8 @@ void Crawler::addURLToQueue(const QString &url_string)
 
 void Crawler::addURLToBlacklist(const QString &url_string)
 {
-	qDebug("Crawler::addURLToQueue()");
-	sBlacklistMutex.lock();
+	qDebug("Crawler::addURLToBlacklist()");
+	sUnwantedLinksMutex.lock();
 	sBlacklist.insert(url_string);
-	sBlacklistMutex.unlock();
+	sUnwantedLinksMutex.unlock();
 }
