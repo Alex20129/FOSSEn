@@ -141,7 +141,6 @@ void Crawler::stop()
 	qDebug("Crawler::stop()");
 	mURLList.clear();
 	mCrawlerPersonalThread->quit();
-	mCrawlerPersonalThread->wait();
 }
 
 void Crawler::addURLToQueue(const QString &url_string)
