@@ -40,8 +40,6 @@ int main(int argc, char** argv)
 	myCrawler->addHostnameToBlacklist(QString("vk.com"));
 	myCrawler->addHostnameToBlacklist(QString("vk.ru"));
 
-	return 555;
-
 	QTimer::singleShot(0, myCrawler, &Crawler::start);
 
 	return(fossenApp.exec());
