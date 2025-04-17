@@ -5,7 +5,6 @@
 #include <QThread>
 #include <QMutex>
 #include <QTimer>
-#include <QQueue>
 #include <QRandomGenerator>
 #include "phantom_wrapper.hpp"
 
@@ -26,7 +25,7 @@ class Crawler : public QObject
 	QThread *mCrawlerPersonalThread;
 	QTimer *mLoadingIntervalTimer;
 	PhantomWrapper *mPhantom;
-	QQueue<QString> mURLQueue;
+	QList<QString> mURLList;
 	QMutex mURLQueueMutex;
 	static QHash<QString, PageData> sVisitedPages;
 	static QMutex sVisitedPagesMutex;
@@ -43,6 +42,7 @@ private slots:
 	void onPageHasBeenLoaded();
 public:
 	Crawler(QObject *parent=nullptr);
+	const PhantomWrapper *getPhantom() const;
 	void start();
 	void stop();
 	void addURLToQueue(const QString &url_string);

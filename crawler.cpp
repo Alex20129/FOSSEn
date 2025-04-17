@@ -20,6 +20,11 @@ Crawler::Crawler(QObject *parent) : QObject(parent)
 	connect(mLoadingIntervalTimer, &QTimer::timeout, this, &Crawler::loadNextPage);
 }
 
+const PhantomWrapper *Crawler::getPhantom() const
+{
+	return mPhantom;
+}
+
 QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)
 {
 	qDebug("Crawler::extractWordsAndFrequency()");
@@ -69,12 +74,12 @@ void Crawler::loadNextPage()
 	qDebug("Crawler::loadNextPage()");
 	QString nextURL;
 	mURLQueueMutex.lock();
-	if (!mURLQueue.isEmpty())
+	if (!mURLList.isEmpty())
 	{
-		nextURL=mURLQueue.dequeue();
+		nextURL=mURLList.takeAt(mRNG->bounded(0, mURLList.count()));
 	}
 	mURLQueueMutex.unlock();
-	qDebug() << mURLQueue.size() << "URLs in queue";
+	qDebug() << mURLList.count() << "URLs in list";
 	if(nextURL.length())
 	{
 		mPhantom->loadPage(nextURL);
@@ -134,7 +139,7 @@ void Crawler::start()
 void Crawler::stop()
 {
 	qDebug("Crawler::stop()");
-	mURLQueue.clear();
+	mURLList.clear();
 	mCrawlerPersonalThread->quit();
 	mCrawlerPersonalThread->wait();
 }
@@ -164,14 +169,14 @@ void Crawler::addURLToQueue(const QString &url_string)
 	if (!skipThisURL)
 	{
 		mURLQueueMutex.lock();
-		if (mURLQueue.contains(url_string))
+		if (mURLList.contains(url_string))
 		{
-			qDebug() << "Skipping enqueued URL:" << url_string;
+			qDebug() << "Skipping duplicate URL:" << url_string;
 		}
 		else
 		{
-			mURLQueue.enqueue(url_string);
-			qDebug() << "Add new URL into processing queue:" << url_string;
+			mURLList.append(url_string);
+			qDebug() << "URL has been added to the processing queue:" << url_string;
 		}
 		mURLQueueMutex.unlock();
 	}

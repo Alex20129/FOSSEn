@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <QApplication>
 #include <QWebElement>
+#include <QFileInfo>
+#include <QDir>
+#include <QFile>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
@@ -20,8 +23,46 @@ PhantomWrapper::PhantomWrapper(QObject *parent) : QObject(parent)
 	connect(mPage, &WebPage::loadFinished, this, &PhantomWrapper::onPageLoadingFinished);
 }
 
-void PhantomWrapper::loadCookiesFromFile(const QString &pathToFile)
+void PhantomWrapper::loadCookiesFromFireFoxProfile(const QString &pathToFile) const
 {
+	QSettings settings(pathToFile, QSettings::IniFormat);
+	QStringList profiles = settings.childGroups();
+	QFileInfo iniFile(pathToFile);
+	QDir profilesDir = iniFile.absoluteDir();
+	QString profilePath;
+	for (const QString &group : profiles)
+	{
+		if (group.startsWith("Profile"))
+		{
+			settings.beginGroup(group);
+			if (settings.contains("Default") && settings.value("Default").toInt() == 1)
+			{
+				profilePath = settings.value("Path").toString();
+				settings.endGroup();
+				break;
+			}
+			if (profilePath.isEmpty())
+			{
+				profilePath = settings.value("Path").toString();
+			}
+			settings.endGroup();
+		}
+	}
+	if (profilePath.isEmpty())
+	{
+		return;
+	}
+	QString cookiesFilePath = profilesDir.absoluteFilePath(profilePath + "/cookies.sqlite");
+	if (!QFile::exists(cookiesFilePath))
+	{
+		return;
+	}
+	loadCookiesFromFile(cookiesFilePath);
+}
+
+void PhantomWrapper::loadCookiesFromFile(const QString &pathToFile) const
+{
+	qDebug("PhantomWrapper::loadCookiesFromFile()");
 	QList<QNetworkCookie> cookies;
 	QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "firefox_cookies");
 	db.setDatabaseName(pathToFile);
@@ -45,7 +86,7 @@ void PhantomWrapper::loadCookiesFromFile(const QString &pathToFile)
 		qint64 expiry = query.value("expiry").toLongLong();
 		QString name = query.value("name").toString();
 		QString value = query.value("value").toString();
-		if (expiry != 0 && expiry < QDateTime::currentDateTime().toSecsSinceEpoch())
+		if (expiry != 0 && expiry < QDateTime::currentSecsSinceEpoch())
 		{
 			continue;
 		}
@@ -58,6 +99,7 @@ void PhantomWrapper::loadCookiesFromFile(const QString &pathToFile)
 			cookie.setExpirationDate(QDateTime::fromSecsSinceEpoch(expiry));
 		}
 		cookies.append(cookie);
+		qDebug()<<cookie;
 	}
 	db.close();
 	QSqlDatabase::removeDatabase("firefox_cookies");

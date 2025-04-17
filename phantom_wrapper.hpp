@@ -20,7 +20,8 @@ private slots:
 	void onPageLoadingFinished();
 public:
 	PhantomWrapper(QObject *parent=nullptr);
-	void loadCookiesFromFile(const QString &pathToFile);
+	void loadCookiesFromFireFoxProfile(const QString &pathToFile) const;
+	void loadCookiesFromFile(const QString &pathToFile) const;
 	void loadPage(const QString &url);
 	QString getPageHtml() const;
 	QString getPagePlainText() const;
