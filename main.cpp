@@ -28,6 +28,7 @@ int main(int argc, char** argv)
 	myCrawler->addURLToQueue(QString("https://github.com/yacy/"));
 	myCrawler->addURLToQueue(QString("https://habr.com/en/articles/"));
 
+	myCrawler->addHostnameToBlacklist(QString("search.yahoo.com"));
 	myCrawler->addHostnameToBlacklist(QString("www.linkedin.com"));
 	myCrawler->addHostnameToBlacklist(QString("www.instagram.com"));
 	myCrawler->addHostnameToBlacklist(QString("www.dzen.ru"));
@@ -35,6 +36,12 @@ int main(int argc, char** argv)
 	myCrawler->addHostnameToBlacklist(QString("www.vk.com"));
 	myCrawler->addHostnameToBlacklist(QString("www.vk.ru"));
 	myCrawler->addHostnameToBlacklist(QString("www.tbank.ru"));
+	myCrawler->addHostnameToBlacklist(QString("www.google.com"));
+	myCrawler->addHostnameToBlacklist(QString("support.google.com"));
+	myCrawler->addHostnameToBlacklist(QString("www.ya.ru"));
+	myCrawler->addHostnameToBlacklist(QString("translate.yandex.ru"));
+	myCrawler->addHostnameToBlacklist(QString("passport.yandex.ru"));
+	myCrawler->addHostnameToBlacklist(QString("company.yandex.ru"));
 
 	QTimer::singleShot(0, myCrawler, &Crawler::start);
 
