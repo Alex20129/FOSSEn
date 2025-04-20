@@ -21,7 +21,8 @@ int main(int argc, char** argv)
 
 	myCrawler->addURLToQueue(QString("https://www.google.com/search?q=fast+sorting+algorithm"));
 	myCrawler->addURLToQueue(QString("https://search.yahoo.com/search?p=fast+sorting+algorithm"));
-	myCrawler->addURLToQueue(QString("https://ya.ru/search/?text=fast+sorting+algorithm"));
+	myCrawler->addURLToQueue(QString("https://www.ya.ru/search/?text=fast+sorting+algorithm"));
+	myCrawler->addURLToQueue(QString("https://www.bing.com/search?q=fast+sorting+algorithm"));
 	myCrawler->addURLToQueue(QString("https://stackoverflow.com/search?q=malloc"));
 	myCrawler->addURLToQueue(QString("https://www.lostfilm.tv/movies/"));
 	myCrawler->addURLToQueue(QString("https://github.com/yacy/"));

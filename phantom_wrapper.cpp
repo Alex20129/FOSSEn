@@ -1,5 +1,3 @@
-#include "phantom_wrapper.hpp"
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <QApplication>
@@ -10,6 +8,9 @@
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
+
+#include "phantom_wrapper.hpp"
+#include "simple_hash_func.hpp"
 
 PhantomWrapper::PhantomWrapper(QObject *parent) : QObject(parent)
 {
@@ -167,11 +168,14 @@ QStringList PhantomWrapper::extractPageLinks() const
 
 void PhantomWrapper::onPageLoadingFinished()
 {
+	QByteArray pageHtml=getPageHtml().toUtf8();
+	uint64_t pageHash=mms_hash_64((uint8_t *)pageHtml.data(), pageHtml.size());
+
 	//for debug purpose
-	QFile pageHTMLFile("page.html");
+	QFile pageHTMLFile(QString("page_")+QString::number(pageHash, 16)+QString(".html"));
 	if (pageHTMLFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
-		pageHTMLFile.write(getPageHtml().toUtf8());
+		pageHTMLFile.write(pageHtml);
 		pageHTMLFile.close();
 	}
 	else
@@ -180,7 +184,7 @@ void PhantomWrapper::onPageLoadingFinished()
 	}
 
 	//for debug purpose
-	QFile pageTXTFile("page.txt");
+	QFile pageTXTFile(QString("page_")+QString::number(pageHash, 16)+QString(".txt"));
 	if (pageTXTFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
 		pageTXTFile.write(getPagePlainText().toUtf8());
@@ -193,7 +197,7 @@ void PhantomWrapper::onPageLoadingFinished()
 
 	//for debug purpose
 	QStringList PageLinksList = extractPageLinks();
-	QFile pageLinksFile("page_links.txt");
+	QFile pageLinksFile(QString("page_")+QString::number(pageHash, 16)+QString("_links.txt"));
 	if (pageLinksFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
 		for(QString link : PageLinksList)
