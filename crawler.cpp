@@ -12,6 +12,8 @@ Crawler::Crawler(QObject *parent) : QObject(parent)
 	mCrawlerPersonalThread=new QThread(this);
 	mLoadingIntervalTimer=new QTimer(this);
 	mPhantom=new PhantomWrapper(this);
+	mIndexer=new Indexer(this);
+	mIndexer->initialize("in_test.sqlite");
 	mLoadingIntervalTimer->setSingleShot(1);
 	connect(mCrawlerPersonalThread, &QThread::started, this, &Crawler::onNewThreadStarted);
 	connect(mCrawlerPersonalThread, &QThread::finished, this, &Crawler::onNewThreadFinished);
@@ -22,6 +24,11 @@ Crawler::Crawler(QObject *parent) : QObject(parent)
 const PhantomWrapper *Crawler::getPhantom() const
 {
 	return mPhantom;
+}
+
+const Indexer *Crawler::getIndexer() const
+{
+	return mIndexer;
 }
 
 QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)

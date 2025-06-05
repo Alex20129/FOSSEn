@@ -18,7 +18,7 @@ struct DocumentMetadata
 class Indexer : public QObject
 {
 	Q_OBJECT
-	QSqlDatabase mDb;
+	QSqlDatabase mDatabase;
 public:
 	Indexer(QObject *parent = nullptr);
 	~Indexer();

@@ -6,27 +6,27 @@
 
 Indexer::Indexer(QObject *parent) : QObject(parent)
 {
-	mDb = QSqlDatabase::addDatabase("QSQLITE", "index_db");
+	mDatabase = QSqlDatabase::addDatabase("QSQLITE", "index_db");
 }
 
 Indexer::~Indexer()
 {
-	if(mDb.isOpen())
+	if(mDatabase.isOpen())
 	{
-		mDb.close();
+		mDatabase.close();
 	}
 	QSqlDatabase::removeDatabase("index_db");
 }
 
 bool Indexer::initialize(const QString &dbPath)
 {
-	mDb.setDatabaseName(dbPath);
-	if (!mDb.open())
+	mDatabase.setDatabaseName(dbPath);
+	if (!mDatabase.open())
 	{
-		qWarning() << "Failed to open database:" << mDb.lastError().text();
+		qWarning() << "Failed to open database:" << mDatabase.lastError().text();
 		return false;
 	}
-	QSqlQuery query(mDb);
+	QSqlQuery query(mDatabase);
 	query.exec("CREATE TABLE IF NOT EXISTS documents ("
 			   "doc_id INTEGER PRIMARY KEY AUTOINCREMENT,"
 			   "url TEXT UNIQUE NOT NULL,"
@@ -65,8 +65,8 @@ QString joinIntList(const QList<int> &list, const QString &separator)
 
 void Indexer::addDocument(const DocumentMetadata &metadata, const QMap<QString, int> &wordFrequencies, const QString &text)
 {
-	QSqlQuery query(mDb);
-	mDb.transaction();
+	QSqlQuery query(mDatabase);
+	mDatabase.transaction();
 
 	query.prepare("INSERT OR IGNORE INTO documents (url, title, timestamp) VALUES (?, ?, ?)");
 	query.addBindValue(metadata.url);
@@ -77,7 +77,7 @@ void Indexer::addDocument(const DocumentMetadata &metadata, const QMap<QString, 
 	if (query.lastError().isValid())
 	{
 		qWarning() << "Failed to insert document:" << query.lastError().text();
-		mDb.rollback();
+		mDatabase.rollback();
 		return;
 	}
 
@@ -87,7 +87,7 @@ void Indexer::addDocument(const DocumentMetadata &metadata, const QMap<QString, 
 	if (!query.next())
 	{
 		qWarning() << "Failed to get doc_id for" << metadata.url;
-		mDb.rollback();
+		mDatabase.rollback();
 		return;
 	}
 	int docId = query.value(0).toInt();
@@ -117,7 +117,7 @@ void Indexer::addDocument(const DocumentMetadata &metadata, const QMap<QString, 
 		if (!query.next())
 		{
 			qWarning() << "Failed to get word_id for" << word;
-			mDb.rollback();
+			mDatabase.rollback();
 			return;
 		}
 		int wordId = query.value(0).toInt();
@@ -133,19 +133,19 @@ void Indexer::addDocument(const DocumentMetadata &metadata, const QMap<QString, 
 		if (query.lastError().isValid())
 		{
 			qWarning() << "Failed to insert posting for" << word << ":" << query.lastError().text();
-			mDb.rollback();
+			mDatabase.rollback();
 			return;
 		}
 	}
 
-	mDb.commit();
+	mDatabase.commit();
 }
 
 // TODO: SQLite FTS5
 QList<DocumentMetadata> Indexer::searchWords(const QStringList &words) const
 {
 	QList<DocumentMetadata> results;
-	QSqlQuery query(mDb);
+	QSqlQuery query(mDatabase);
 
 	QStringList conditions;
 	for (int i = 0; i < words.size(); ++i)
