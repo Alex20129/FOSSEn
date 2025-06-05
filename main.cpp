@@ -7,6 +7,7 @@
 
 #include "main.hpp"
 #include "crawler.hpp"
+#include "indexer.hpp"
 
 using namespace std;
 
@@ -22,6 +23,15 @@ int main(int argc, char** argv)
 	}
 
 	QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QApplication::quit);
+
+	// ====== test zone
+	// Indexer *in1=new Indexer();
+	// in1->initialize("in_test.sqlite");
+
+	// qDebug() << in1->searchWords(QStringList("test")).first().url;
+	// qDebug() << in1->searchWords(QStringList("test")).first().title;
+	// qDebug() << in1->searchWords(QStringList("test")).first().timestamp;
+	// ======
 
 	QFile startConfigFile("start.json");
 	if (!startConfigFile.exists())

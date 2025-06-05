@@ -36,6 +36,8 @@ ADD_EXECUTABLE(${CMAKE_PROJECT_NAME}
 	main.cpp
 	crawler.hpp
 	crawler.cpp
+	indexer.hpp
+	indexer.cpp
 	simple_hash_func.hpp
 	simple_hash_func.cpp
 	phantom_wrapper.hpp
