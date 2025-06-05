@@ -157,7 +157,7 @@ QStringList PhantomWrapper::extractPageLinks() const
 				{
 					if (newUrl.scheme() == QStringLiteral("http") || newUrl.scheme() == QStringLiteral("https"))
 					{
-						links.append(newUrl.toString());
+						links.append(newUrl.adjusted(QUrl::RemoveFragment).toString());
 					}
 				}
 			}
