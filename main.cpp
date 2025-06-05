@@ -1,3 +1,7 @@
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QFile>
 #include <iostream>
 #include <string>
 
@@ -19,29 +23,47 @@ int main(int argc, char** argv)
 
 	QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QApplication::quit);
 
-	myCrawler->addURLToQueue(QString("https://www.google.com/search?q=fast+sorting+algorithm"));
-	myCrawler->addURLToQueue(QString("https://search.yahoo.com/search?p=fast+sorting+algorithm"));
-	myCrawler->addURLToQueue(QString("https://www.ya.ru/search/?text=fast+sorting+algorithm"));
-	myCrawler->addURLToQueue(QString("https://www.bing.com/search?q=fast+sorting+algorithm"));
-	myCrawler->addURLToQueue(QString("https://stackoverflow.com/search?q=malloc"));
-	myCrawler->addURLToQueue(QString("https://www.lostfilm.tv/movies/"));
-	myCrawler->addURLToQueue(QString("https://github.com/yacy/"));
-	myCrawler->addURLToQueue(QString("https://habr.com/en/articles/"));
+	QFile startConfigFile("start.json");
+	if (!startConfigFile.exists())
+	{
+		qDebug() << "start.json doesn't exist";
+		return 22;
+	}
 
-	myCrawler->addHostnameToBlacklist(QString("search.yahoo.com"));
-	myCrawler->addHostnameToBlacklist(QString("www.linkedin.com"));
-	myCrawler->addHostnameToBlacklist(QString("www.instagram.com"));
-	myCrawler->addHostnameToBlacklist(QString("www.dzen.ru"));
-	myCrawler->addHostnameToBlacklist(QString("www.facebook.com"));
-	myCrawler->addHostnameToBlacklist(QString("www.vk.com"));
-	myCrawler->addHostnameToBlacklist(QString("www.vk.ru"));
-	myCrawler->addHostnameToBlacklist(QString("www.tbank.ru"));
-	myCrawler->addHostnameToBlacklist(QString("www.google.com"));
-	myCrawler->addHostnameToBlacklist(QString("support.google.com"));
-	myCrawler->addHostnameToBlacklist(QString("www.ya.ru"));
-	myCrawler->addHostnameToBlacklist(QString("translate.yandex.ru"));
-	myCrawler->addHostnameToBlacklist(QString("passport.yandex.ru"));
-	myCrawler->addHostnameToBlacklist(QString("company.yandex.ru"));
+	if(!startConfigFile.open(QIODevice::ReadOnly))
+	{
+		qDebug() << "Couldn't open start.json";
+		return 33;
+	}
+
+	QByteArray startConfigFileData=startConfigFile.readAll();
+	startConfigFile.close();
+
+	QJsonParseError err;
+	QJsonDocument startConfigFileJsonDoc = QJsonDocument::fromJson(startConfigFileData, &err);
+
+	if (err.error != QJsonParseError::NoError)
+	{
+		qDebug() << "Couldn't start.json :" << err.errorString();
+		return 44;
+	}
+
+	if(!startConfigFileJsonDoc.isObject())
+	{
+		qDebug() << "Bad JSON in start.json file";
+		return 55;
+	}
+
+	QJsonObject startConfigFileJsonObject = startConfigFileJsonDoc.object();
+
+	for (const QJsonValue &url : startConfigFileJsonObject.value("start_urls").toArray())
+	{
+		myCrawler->addURLToQueue(url.toString());
+	}
+	for (const QJsonValue &host : startConfigFileJsonObject.value("black_list").toArray())
+	{
+		myCrawler->addHostnameToBlacklist(host.toString());
+	}
 
 	QTimer::singleShot(0, myCrawler, &Crawler::start);
 

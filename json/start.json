@@ -1,0 +1,37 @@
+{
+	"start_urls":
+	[
+		"https://www.google.com/search?q=fast+sorting+algorithm",
+		"https://search.yahoo.com/search?p=fast+sorting+algorithm",
+		"https://www.ya.ru/search/?text=fast+sorting+algorithm",
+		"https://www.bing.com/search?q=fast+sorting+algorithm",
+		"https://stackoverflow.com/search?q=malloc",
+		"https://www.lostfilm.tv/movies/",
+		"https://github.com/yacy/",
+		"https://habr.com/en/articles/",
+		"https://en.wikipedia.org/wiki/Attack_helicopter"
+	],
+	"black_list":
+	[
+		"search.yahoo.com",
+		"www.linkedin.com",
+		"www.instagram.com",
+		"www.dzen.ru",
+		"www.facebook.com",
+		"www.vk.com",
+		"www.vk.ru",
+		"www.tbank.ru",
+		"www.google.com",
+		"support.google.com",
+		"googleusercontent.com",
+		"lens.google.com",
+		"www.ya.ru",
+		"yastatic.net",
+		"translate.yandex.ru",
+		"passport.yandex.ru",
+		"company.yandex.ru",
+		"mc.yandex.ru",
+		"alice.yandex.ru",
+		"plus.yandex.ru"
+	]
+}
