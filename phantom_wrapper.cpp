@@ -168,10 +168,10 @@ QStringList PhantomWrapper::extractPageLinks() const
 
 void PhantomWrapper::onPageLoadingFinished()
 {
+#ifndef NDEBUG
 	QByteArray pageHtml=getPageHtml().toUtf8();
 	uint64_t pageHash=mms_hash_64((uint8_t *)pageHtml.data(), pageHtml.size());
 
-	//for debug purpose
 	QFile pageHTMLFile(QString("page_")+QString::number(pageHash, 16)+QString(".html"));
 	if (pageHTMLFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
@@ -183,7 +183,6 @@ void PhantomWrapper::onPageLoadingFinished()
 		qWarning() << "Failed to open page.html";
 	}
 
-	//for debug purpose
 	QFile pageTXTFile(QString("page_")+QString::number(pageHash, 16)+QString(".txt"));
 	if (pageTXTFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
@@ -195,7 +194,6 @@ void PhantomWrapper::onPageLoadingFinished()
 		qWarning() << "Failed to open page.txt";
 	}
 
-	//for debug purpose
 	QStringList PageLinksList = extractPageLinks();
 	QFile pageLinksFile(QString("page_")+QString::number(pageHash, 16)+QString("_links.txt"));
 	if (pageLinksFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
@@ -211,6 +209,7 @@ void PhantomWrapper::onPageLoadingFinished()
 	{
 		qWarning() << "Failed to open page_links.txt";
 	}
+#endif
 
-	emit(pageHasBeenLoaded());
+	emit pageHasBeenLoaded();
 }
