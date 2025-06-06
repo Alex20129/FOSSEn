@@ -33,7 +33,9 @@ const Indexer *Crawler::getIndexer() const
 
 QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)
 {
+#ifndef NDEBUG
 	qDebug("Crawler::extractWordsAndFrequency()");
+#endif
 	static const QRegularExpression wordsRegex("\\W+");
 	static const QRegularExpression digitsRegex("^[0-9]+$");
 	static const QSet<QString> stopWords =
@@ -52,13 +54,17 @@ QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)
 			}
 		}
 	}
+#ifndef NDEBUG
 	qDebug()<<wordMap.keys();
+#endif
 	return wordMap;
 }
 
 void Crawler::onNewThreadStarted()
 {
+#ifndef NDEBUG
 	qDebug("Crawler::onNewThreadStarted()");
+#endif
 	emit started(this);
 	mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
 	mLoadingIntervalTimer->start();
@@ -66,14 +72,18 @@ void Crawler::onNewThreadStarted()
 
 void Crawler::onNewThreadFinished()
 {
+#ifndef NDEBUG
 	qDebug("Crawler::onNewThreadFinished()");
-	emit finished(this);
 	qDebug()<<"Visited Pages:\n"<<sVisitedPages.keys();
+#endif
+	emit finished(this);
 }
 
 void Crawler::loadNextPage()
 {
+#ifndef NDEBUG
 	qDebug("Crawler::loadNextPage()");
+#endif
 	QString nextURL;
 	mURLQueueMutex.lock();
 	if (!mURLList.isEmpty())
@@ -81,24 +91,32 @@ void Crawler::loadNextPage()
 		nextURL=mURLList.takeAt(mRNG->bounded(0, mURLList.count()));
 	}
 	mURLQueueMutex.unlock();
-	qDebug() << mURLList.count() << "URLs in list";
+#ifndef NDEBUG
+	qDebug() << mURLList.count() << "Pending URLs in list";
+#endif
 	if(nextURL.length())
 	{
 		mPhantom->loadPage(nextURL);
 	}
 }
 
-//for debug purpose
+#ifndef NDEBUG
 static int visited_n=0;
+#endif
 
 void Crawler::onPageHasBeenLoaded()
 {
+#ifndef NDEBUG
 	qDebug("Crawler::onPageHasBeenLoaded()");
+#endif
+
 	QString pageURL = mPhantom->getPageURL();
 	QString plainText = mPhantom->getPagePlainText();
 	PageData data;
 
+#ifndef NDEBUG
 	qDebug() << "Page has been loaded:" << pageURL;
+#endif
 
 	data.timestamp = QDateTime::currentDateTime();
 	data.title = mPhantom->getPageTitle();
@@ -114,13 +132,14 @@ void Crawler::onPageHasBeenLoaded()
 		addURLToQueue(link);
 	}
 
-	//for debug purpose
+#ifndef NDEBUG
 	if(++visited_n>30)
 	{
 		stop();
 		return;
 	}
 	else
+#endif
 	{
 		mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
 		mLoadingIntervalTimer->start();
@@ -129,7 +148,9 @@ void Crawler::onPageHasBeenLoaded()
 
 void Crawler::start()
 {
+#ifndef NDEBUG
 	qDebug("Crawler::start()");
+#endif
 	if(this->parent())
 	{
 		this->setParent(nullptr);
@@ -140,28 +161,38 @@ void Crawler::start()
 
 void Crawler::stop()
 {
+#ifndef NDEBUG
 	qDebug("Crawler::stop()");
+#endif
 	mLoadingIntervalTimer->stop();
+#ifndef NDEBUG
 	qDebug() << "unvisited pages:" << mURLList;
+#endif
 	mURLList.clear();
 	mCrawlerPersonalThread->quit();
 }
 
 void Crawler::addURLToQueue(const QString &url_string)
 {
+#ifndef NDEBUG
 	qDebug("Crawler::addURLToQueue()");
+#endif
 	QUrl newUrl(url_string);
 	bool skipThisURL=0;
 	sUnwantedLinksMutex.lock();
 	if (sHostnameBlacklist.contains(newUrl.host()))
 	{
 		skipThisURL=1;
+#ifndef NDEBUG
 		qDebug() << "Skipping blacklisted host:" << newUrl.host();
+#endif
 	}
 	else if (sVisitedPages.contains(url_string))
 	{
 		skipThisURL=1;
+#ifndef NDEBUG
 		qDebug() << "Skipping visited URL:" << url_string;
+#endif
 	}
 	sUnwantedLinksMutex.unlock();
 	if (!skipThisURL)
@@ -169,12 +200,16 @@ void Crawler::addURLToQueue(const QString &url_string)
 		mURLQueueMutex.lock();
 		if (mURLList.contains(url_string))
 		{
+#ifndef NDEBUG
 			qDebug() << "Skipping duplicate URL:" << url_string;
+#endif
 		}
 		else
 		{
 			mURLList.append(url_string);
+#ifndef NDEBUG
 			qDebug() << "URL has been added to the processing queue:" << url_string;
+#endif
 		}
 		mURLQueueMutex.unlock();
 	}
@@ -182,7 +217,9 @@ void Crawler::addURLToQueue(const QString &url_string)
 
 void Crawler::addHostnameToBlacklist(const QString &hostname)
 {
+#ifndef NDEBUG
 	qDebug("Crawler::addHostToBlacklist()");
+#endif
 	QString shortName;
 	if(hostname.startsWith("www."))
 	{
@@ -193,11 +230,15 @@ void Crawler::addHostnameToBlacklist(const QString &hostname)
 	if (!sHostnameBlacklist.contains(hostname))
 	{
 		sHostnameBlacklist.insert(hostname);
+#ifndef NDEBUG
 		qDebug() << "Host address has been added to the blacklist:" << hostname;
+#endif
 		if(shortName.length())
 		{
 			sHostnameBlacklist.insert(shortName);
+#ifndef NDEBUG
 			qDebug() << "Host address has been added to the blacklist:" << shortName;
+#endif
 		}
 	}
 	sUnwantedLinksMutex.unlock();
