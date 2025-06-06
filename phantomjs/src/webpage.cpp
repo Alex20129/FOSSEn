@@ -575,7 +575,14 @@ void WebPage::stop()
 
 QString WebPage::plainText() const
 {
-	return m_mainFrame->toPlainText();
+	QString plainText=m_mainFrame->toHtml();
+	static const QRegularExpression scriptStyleRegex("<(script|style)[^>]*>.*?</\\1>", QRegularExpression::DotMatchesEverythingOption);
+	plainText.remove(scriptStyleRegex);
+	static const QRegularExpression htmlTagRegex("<[^>]+>");
+	plainText.replace(htmlTagRegex, " ");
+	plainText=plainText.simplified();
+	return plainText;
+	// return m_mainFrame->toPlainText();
 }
 
 QString WebPage::framePlainText() const

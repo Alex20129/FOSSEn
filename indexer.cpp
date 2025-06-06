@@ -63,7 +63,7 @@ QString joinIntList(const QList<int> &list, const QString &separator)
 	return strList.join(separator);
 }
 
-void Indexer::addDocument(const DocumentMetadata &metadata, const QMap<QString, int> &wordFrequencies, const QString &text)
+void Indexer::addPage(const PageMetadata &metadata, const QMap<QString, int> &wordFrequencies, const QString &text)
 {
 	QSqlQuery query(mDatabase);
 	mDatabase.transaction();
@@ -142,9 +142,9 @@ void Indexer::addDocument(const DocumentMetadata &metadata, const QMap<QString, 
 }
 
 // TODO: SQLite FTS5
-QList<DocumentMetadata> Indexer::searchWords(const QStringList &words) const
+QList<PageMetadata> Indexer::searchWords(const QStringList &words) const
 {
-	QList<DocumentMetadata> results;
+	QList<PageMetadata> results;
 	QSqlQuery query(mDatabase);
 
 	QStringList conditions;
@@ -169,7 +169,7 @@ QList<DocumentMetadata> Indexer::searchWords(const QStringList &words) const
 
 	while (query.next())
 	{
-		DocumentMetadata result;
+		PageMetadata result;
 		result.url = query.value("url").toString();
 		result.title = query.value("title").toString();
 		result.timestamp = query.value("timestamp").toDateTime();

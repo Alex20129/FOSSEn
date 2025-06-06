@@ -1,7 +1,7 @@
 #include <QRegularExpression>
 #include "crawler.hpp"
 
-QHash<QString, PageData> Crawler::sVisitedPages;
+QSet<QString> Crawler::sVisitedPages;
 QSet<QString> Crawler::sHostnameBlacklist;
 QMutex Crawler::sUnwantedLinksMutex;
 
@@ -31,10 +31,10 @@ const Indexer *Crawler::getIndexer() const
 	return mIndexer;
 }
 
-QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)
+QMap<QString, int> Crawler::extractWordsAndFrequencies(const QString &text)
 {
 #ifndef NDEBUG
-	qDebug("Crawler::extractWordsAndFrequency()");
+	qDebug("Crawler::extractWordsAndFrequencies()");
 #endif
 	static const QRegularExpression wordsRegex("\\W+");
 	static const QRegularExpression digitsRegex("^[0-9]+$");
@@ -74,7 +74,7 @@ void Crawler::onNewThreadFinished()
 {
 #ifndef NDEBUG
 	qDebug("Crawler::onNewThreadFinished()");
-	qDebug()<<"Visited Pages:\n"<<sVisitedPages.keys();
+	qDebug()<<"Visited Pages:\n"<<sVisitedPages.values();
 #endif
 	emit finished(this);
 }
@@ -92,7 +92,7 @@ void Crawler::loadNextPage()
 	}
 	mURLQueueMutex.unlock();
 #ifndef NDEBUG
-	qDebug() << mURLList.count() << "Pending URLs in list";
+	qDebug() << mURLList.count() << "URLs pending on the list";
 #endif
 	if(nextURL.length())
 	{
@@ -112,7 +112,7 @@ void Crawler::onPageHasBeenLoaded()
 
 	QString pageURL = mPhantom->getPageURL();
 	QString plainText = mPhantom->getPagePlainText();
-	PageData data;
+	PageMetadata data;
 
 #ifndef NDEBUG
 	qDebug() << "Page has been loaded:" << pageURL;
@@ -120,10 +120,10 @@ void Crawler::onPageHasBeenLoaded()
 
 	data.timestamp = QDateTime::currentDateTime();
 	data.title = mPhantom->getPageTitle();
-	data.wordsAndFrequency = extractWordsAndFrequency(plainText);
+	data.wordsAndFrequencies = extractWordsAndFrequencies(plainText);
 
 	sUnwantedLinksMutex.lock();
-	sVisitedPages.insert(pageURL, data);
+	sVisitedPages.insert(pageURL);
 	sUnwantedLinksMutex.unlock();
 
 	QStringList links = mPhantom->extractPageLinks();

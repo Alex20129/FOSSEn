@@ -8,11 +8,12 @@
 #include <QStringList>
 #include <QDateTime>
 
-struct DocumentMetadata
+struct PageMetadata
 {
+	QDateTime timestamp;
 	QString title;
 	QUrl url;
-	QDateTime timestamp;
+	QMap<QString, int> wordsAndFrequencies;
 };
 
 class Indexer : public QObject
@@ -23,9 +24,9 @@ public:
 	Indexer(QObject *parent = nullptr);
 	~Indexer();
 	bool initialize(const QString &dbPath);
-	void addDocument(const DocumentMetadata &metadata, const QMap<QString, int> &wordFrequencies, const QString &text);
+	void addPage(const PageMetadata &metadata, const QMap<QString, int> &wordFrequencies, const QString &text);
 	// TODO: SQLite FTS5
-	QList<DocumentMetadata> searchWords(const QStringList &words) const;
+	QList<PageMetadata> searchWords(const QStringList &words) const;
 };
 
 #endif // INDEXER_HPP

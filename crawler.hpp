@@ -12,13 +12,6 @@
 #define PAGE_LOADING_INTERVAL_MIN 960
 #define PAGE_LOADING_INTERVAL_MAX 3840
 
-struct PageData
-{
-	QDateTime timestamp;
-	QString title;
-	QMap<QString, int> wordsAndFrequency;
-};
-
 class Crawler : public QObject
 {
 	Q_OBJECT
@@ -29,10 +22,10 @@ class Crawler : public QObject
 	Indexer *mIndexer;
 	QList<QString> mURLList;
 	QMutex mURLQueueMutex;
-	static QHash<QString, PageData> sVisitedPages;
+	static QSet<QString> sVisitedPages;
 	static QSet<QString> sHostnameBlacklist;
 	static QMutex sUnwantedLinksMutex;
-	QMap<QString, int> extractWordsAndFrequency(const QString &text);
+	QMap<QString, int> extractWordsAndFrequencies(const QString &text);
 signals:
 	void started(Crawler *crawler);
 	void finished(Crawler *crawler);
