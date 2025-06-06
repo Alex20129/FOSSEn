@@ -38,21 +38,17 @@ QMap<QString, int> Crawler::extractWordsAndFrequency(const QString &text)
 	static const QRegularExpression digitsRegex("^[0-9]+$");
 	static const QSet<QString> stopWords =
 	{
-		"the", "and", "or", "a",
-		"an", "in", "on", "at",
-		"to", "for", "of", "with",
-		"by", "was", "so", "such",
-		"be", "as", "is"
+		"the", "and", "for", "with", "was", "such"
 	};
 	QMap<QString, int> wordMap;
-	QStringList tokens = text.toLower().split(wordsRegex, Qt::SkipEmptyParts);
-	for (const QString &token : tokens)
+	QStringList words = text.toLower().split(wordsRegex, Qt::SkipEmptyParts);
+	for (const QString &word : words)
 	{
-		if (token.length()>1 && token.length()<32)
+		if (word.length()>2 && word.length()<32)
 		{
-			if (!stopWords.contains(token) && !digitsRegex.match(token).hasMatch())
+			if (!stopWords.contains(word) && !digitsRegex.match(word).hasMatch())
 			{
-				wordMap[token] += 1;
+				wordMap[word] += 1;
 			}
 		}
 	}
