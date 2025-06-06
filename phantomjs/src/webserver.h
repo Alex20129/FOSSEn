@@ -43,10 +43,9 @@ class WebServerResponse;
 
 /**
  * Scriptable HTTP web server.
- *
- * see also: modules/webserver.js
  */
-class WebServer : public QObject {
+class WebServer : public QObject
+{
     Q_OBJECT
     Q_PROPERTY(QString port READ port)
 
