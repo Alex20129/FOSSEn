@@ -7,14 +7,14 @@
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the <organization> nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
+	* Redistributions of source code must retain the above copyright
+	  notice, this list of conditions and the following disclaimer.
+	* Redistributions in binary form must reproduce the above copyright
+	  notice, this list of conditions and the following disclaimer in the
+	  documentation and/or other materials provided with the distribution.
+	* Neither the name of the <organization> nor the
+	  names of its contributors may be used to endorse or promote products
+	  derived from this software without specific prior written permission.
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -42,52 +42,50 @@
 // This class implements the CommonJS System/1.0 spec.
 // See: http://wiki.commonjs.org/wiki/System/1.0
 class System : public QObject {
-    Q_OBJECT
-    Q_PROPERTY(qint64 pid READ pid)
-    Q_PROPERTY(QStringList args READ args)
-    Q_PROPERTY(QVariant env READ env)
-    Q_PROPERTY(QVariant os READ os)
-    Q_PROPERTY(bool isSSLSupported READ isSSLSupported)
-    Q_PROPERTY(QObject* standardout READ _stdout)
-    Q_PROPERTY(QObject* standarderr READ _stderr)
-    Q_PROPERTY(QObject* standardin READ _stdin)
+	Q_OBJECT
+	Q_PROPERTY(qint64 pid READ pid)
+	Q_PROPERTY(QStringList args READ args)
+	Q_PROPERTY(QVariant env READ env)
+	Q_PROPERTY(QVariant os READ os)
+	Q_PROPERTY(bool isSSLSupported READ isSSLSupported)
+	Q_PROPERTY(QObject* standardout READ _stdout)
+	Q_PROPERTY(QObject* standarderr READ _stderr)
+	Q_PROPERTY(QObject* standardin READ _stdin)
 
 public:
-    explicit System(QObject* parent = 0);
-    virtual ~System();
+	explicit System(QObject* parent = 0);
+	virtual ~System();
 
-    qint64 pid() const;
+	qint64 pid() const;
 
-    void setArgs(const QStringList& args);
-    QStringList args() const;
+	void setArgs(const QStringList& args);
+	QStringList args() const;
 
-    QVariant env() const;
+	QVariant env() const;
 
-    QVariant os() const;
+	QVariant os() const;
 
-    bool isSSLSupported() const;
+	bool isSSLSupported() const;
 
-    // system.stdout
-    QObject* _stdout();
+	// system.stdout
+	QObject* _stdout();
 
-    // system.stderr
-    QObject* _stderr();
+	// system.stderr
+	QObject* _stderr();
 
-    // system.stdin
-    QObject* _stdin();
+	// system.stdin
+	QObject* _stdin();
 
 private slots:
-    void _onTerminalEncodingChanged(const QString& encoding);
-
 private:
-    File* createFileInstance(QFile* f);
+	File* createFileInstance(QFile* f);
 
-    QStringList m_args;
-    QVariant m_env;
-    QMap<QString, QVariant> m_os;
-    File* m_stdout;
-    File* m_stderr;
-    File* m_stdin;
+	QStringList m_args;
+	QVariant m_env;
+	QMap<QString, QVariant> m_os;
+	File* m_stdout;
+	File* m_stderr;
+	File* m_stdin;
 };
 
 #endif // SYSTEM_H
