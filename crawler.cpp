@@ -65,9 +65,9 @@ void Crawler::onNewThreadStarted()
 #ifndef NDEBUG
 	qDebug("Crawler::onNewThreadStarted()");
 #endif
-	emit started(this);
 	mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
 	mLoadingIntervalTimer->start();
+	emit started(this);
 }
 
 void Crawler::onNewThreadFinished()
@@ -165,10 +165,12 @@ void Crawler::stop()
 	qDebug("Crawler::stop()");
 #endif
 	mLoadingIntervalTimer->stop();
+	mURLQueueMutex.lock();
 #ifndef NDEBUG
 	qDebug() << "unvisited pages:" << mURLList;
 #endif
 	mURLList.clear();
+	mURLQueueMutex.unlock();
 	mCrawlerPersonalThread->quit();
 }
 
