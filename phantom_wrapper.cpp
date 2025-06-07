@@ -4,13 +4,11 @@
 #include <QWebElement>
 #include <QFileInfo>
 #include <QDir>
-#include <QFile>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 
 #include "phantom_wrapper.hpp"
-#include "simple_hash_func.hpp"
 
 PhantomWrapper::PhantomWrapper(QObject *parent) : QObject(parent)
 {
@@ -168,48 +166,5 @@ QStringList PhantomWrapper::extractPageLinks() const
 
 void PhantomWrapper::onPageLoadingFinished()
 {
-#ifndef NDEBUG
-	QByteArray pageHtml=getPageHtml().toUtf8();
-	uint64_t pageHash=mms_hash_64((uint8_t *)pageHtml.data(), pageHtml.size());
-
-	QFile pageHTMLFile(QString("page_")+QString::number(pageHash, 16)+QString(".html"));
-	if (pageHTMLFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
-	{
-		pageHTMLFile.write(pageHtml);
-		pageHTMLFile.close();
-	}
-	else
-	{
-		qWarning() << "Failed to open page.html";
-	}
-
-	QFile pageTXTFile(QString("page_")+QString::number(pageHash, 16)+QString(".txt"));
-	if (pageTXTFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
-	{
-		pageTXTFile.write(getPagePlainText().toUtf8());
-		pageTXTFile.close();
-	}
-	else
-	{
-		qWarning() << "Failed to open page.txt";
-	}
-
-	QStringList PageLinksList = extractPageLinks();
-	QFile pageLinksFile(QString("page_")+QString::number(pageHash, 16)+QString("_links.txt"));
-	if (pageLinksFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
-	{
-		for(QString link : PageLinksList)
-		{
-			pageLinksFile.write(link.toUtf8());
-			pageLinksFile.write("\n");
-		}
-		pageLinksFile.close();
-	}
-	else
-	{
-		qWarning() << "Failed to open page_links.txt";
-	}
-#endif
-
 	emit pageHasBeenLoaded();
 }

@@ -1,5 +1,7 @@
 #include <QRegularExpression>
+#include <QFile>
 #include "crawler.hpp"
+#include "simple_hash_func.hpp"
 
 QSet<QString> Crawler::sVisitedPages;
 QSet<QString> Crawler::sHostnameBlacklist;
@@ -112,10 +114,49 @@ void Crawler::onPageHasBeenLoaded()
 
 	QString pageURL = mPhantom->getPageURL();
 	QString plainText = mPhantom->getPagePlainText();
+	QStringList pageLinksList = mPhantom->extractPageLinks();
 	PageMetadata data;
 
 #ifndef NDEBUG
-	qDebug() << "Page has been loaded:" << pageURL;
+	qDebug() << pageURL;
+	QByteArray pageHtml=mPhantom->getPageHtml().toUtf8();
+	uint64_t pageHash=mms_hash_64((uint8_t *)pageHtml.data(), pageHtml.size());
+
+	QFile pageHTMLFile(QString("page_")+QString::number(pageHash, 16)+QString(".html"));
+	if (pageHTMLFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
+	{
+		pageHTMLFile.write(pageHtml);
+		pageHTMLFile.close();
+	}
+	else
+	{
+		qWarning() << "Failed to open page.html";
+	}
+
+	QFile pageTXTFile(QString("page_")+QString::number(pageHash, 16)+QString(".txt"));
+	if (pageTXTFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
+	{
+		pageTXTFile.write(plainText.toUtf8());
+		pageTXTFile.close();
+	}
+	else
+	{
+		qWarning() << "Failed to open page.txt";
+	}
+
+	QFile pageLinksFile(QString("page_")+QString::number(pageHash, 16)+QString("_links.txt"));
+	if (pageLinksFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
+	{
+		for(QString link : pageLinksList)
+		{
+			pageLinksFile.write(link.toUtf8()+QByteArray("\n"));
+		}
+		pageLinksFile.close();
+	}
+	else
+	{
+		qWarning() << "Failed to open page_links.txt";
+	}
 #endif
 
 	data.timestamp = QDateTime::currentDateTime();
@@ -126,8 +167,7 @@ void Crawler::onPageHasBeenLoaded()
 	sVisitedPages.insert(pageURL);
 	sUnwantedLinksMutex.unlock();
 
-	QStringList links = mPhantom->extractPageLinks();
-	for (const QString &link : links)
+	for (const QString &link : pageLinksList)
 	{
 		addURLToQueue(link);
 	}
