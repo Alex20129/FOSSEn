@@ -63,7 +63,7 @@ QString joinIntList(const QList<int> &list, const QString &separator)
 	return strList.join(separator);
 }
 
-void Indexer::addPage(const PageMetadata &metadata, const QMap<QString, int> &wordFrequencies, const QString &text)
+void Indexer::addPage(const PageMetadata &metadata, const QString &text)
 {
 	QSqlQuery query(mDatabase);
 	mDatabase.transaction();
@@ -96,13 +96,13 @@ void Indexer::addPage(const PageMetadata &metadata, const QMap<QString, int> &wo
 	QMap<QString, QList<int>> wordPositions;
 	for (int i = 0; i < tokens.size(); ++i)
 	{
-		if (wordFrequencies.contains(tokens[i]))
+		if (metadata.wordsAndFrequencies.contains(tokens[i]))
 		{
 			wordPositions[tokens[i]].append(i);
 		}
 	}
 
-	for (auto it = wordFrequencies.constBegin(); it != wordFrequencies.constEnd(); it++)
+	for (auto it = metadata.wordsAndFrequencies.constBegin(); it != metadata.wordsAndFrequencies.constEnd(); it++)
 	{
 		const QString &word = it.key();
 		int frequency = it.value();
