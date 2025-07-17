@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-#define UINT16_MASK			0xFFFF
-#define UINT32_MASK			0xFFFFFFFF
-
 uint32_t mms_hash_32(const uint8_t *data, uint32_t len);
 uint64_t mms_hash_64(const uint8_t *data, uint64_t len);
 

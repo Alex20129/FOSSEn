@@ -1,9 +1,9 @@
 #include "simple_hash_func.hpp"
 
-static const uint32_t MMSHASH_ALPHA_32=0xBA24DA87;
+static const uint32_t MMSHASH_ALPHA_32=0xBC948A27;
 static const uint32_t MMSHASH_START_VALUE_32=0xDEADBEEF;
 
-static const uint64_t MMSHASH_ALPHA_64=0xA58B6A35BA24DA87;
+static const uint64_t MMSHASH_ALPHA_64=0xA58B6A35BC948A27;
 static const uint64_t MMSHASH_START_VALUE_64=0xDEADBEEFDEADBEEF;
 
 uint32_t mms_hash_32(const uint8_t *data, uint32_t len)
@@ -12,7 +12,7 @@ uint32_t mms_hash_32(const uint8_t *data, uint32_t len)
 	for (i=0; i < len; i++)
 	{
 		mms_result+=data[i];
-		mms_result=(mms_result & UINT16_MASK) * MMSHASH_ALPHA_32 + (mms_result >> 16);
+		mms_result=(mms_result & UINT16_MAX) * MMSHASH_ALPHA_32 + (mms_result >> 16);
 	}
 	return (mms_result);
 }
@@ -23,7 +23,7 @@ uint64_t mms_hash_64(const uint8_t *data, uint64_t len)
 	for (i=0; i < len; i++)
 	{
 		mms_result+=data[i];
-		mms_result=(mms_result & UINT32_MASK) * MMSHASH_ALPHA_64 + (mms_result >> 32);
+		mms_result=(mms_result & UINT32_MAX) * MMSHASH_ALPHA_64 + (mms_result >> 32);
 	}
 	return (mms_result);
 }
