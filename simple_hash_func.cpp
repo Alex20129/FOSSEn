@@ -9,7 +9,7 @@ static const uint64_t FNV64_INITIAL_OFFSET=0xCBF29CE484222325;
 static const uint32_t FNV32_PRIME=0x01000193;
 static const uint64_t FNV64_PRIME=0x00000100000001B3;
 
-uint32_t mms_hash_32(const uint8_t *data, uint32_t len)
+uint32_t mwc_hash_32(const uint8_t *data, uint32_t len)
 {
 	uint32_t result=FNV32_INITIAL_OFFSET, i;
 	for(i=0; i<len; i++)
@@ -20,7 +20,7 @@ uint32_t mms_hash_32(const uint8_t *data, uint32_t len)
 	return(result);
 }
 
-uint64_t mms_hash_64(const uint8_t *data, uint64_t len)
+uint64_t mwc_hash_64(const uint8_t *data, uint64_t len)
 {
 	uint64_t result=FNV64_INITIAL_OFFSET, i;
 	for(i=0; i<len; i++)

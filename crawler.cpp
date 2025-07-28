@@ -120,7 +120,7 @@ void Crawler::onPageHasBeenLoaded()
 #ifndef NDEBUG
 	qDebug() << pageURL;
 	QByteArray pageHtml=mPhantom->getPageHtml().toUtf8();
-	uint64_t pageHash=mms_hash_64((uint8_t *)pageHtml.data(), pageHtml.size());
+	uint64_t pageHash=mwc_hash_64((uint8_t *)pageHtml.data(), pageHtml.size());
 
 	QFile pageHTMLFile(QString("page_")+QString::number(pageHash, 16)+QString(".html"));
 	if (pageHTMLFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
