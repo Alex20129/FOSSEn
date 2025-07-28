@@ -1,7 +1,7 @@
 #include "simple_hash_func.hpp"
 
-static const uint32_t MMS32_ALPHA=0x7F545415;
-static const uint64_t MMS64_ALPHA=0x000007F22254544B;
+static const uint32_t MWC32_ALPHA=0x7F545431;
+static const uint64_t MWC64_ALPHA=0x00007F5454545437;
 
 static const uint32_t FNV32_INITIAL_OFFSET=0x811C9DC5;
 static const uint64_t FNV64_INITIAL_OFFSET=0xCBF29CE484222325;
@@ -15,7 +15,7 @@ uint32_t mwc_hash_32(const uint8_t *data, uint32_t len)
 	for(i=0; i<len; i++)
 	{
 		result+=data[i];
-		result=(result & UINT16_MAX) * MMS32_ALPHA + (result >> 16);
+		result=(result & UINT16_MAX) * MWC32_ALPHA + (result >> 16);
 	}
 	return(result);
 }
@@ -26,7 +26,7 @@ uint64_t mwc_hash_64(const uint8_t *data, uint64_t len)
 	for(i=0; i<len; i++)
 	{
 		result+=data[i];
-		result=(result & UINT32_MAX) * MMS64_ALPHA + (result >> 32);
+		result=(result & UINT32_MAX) * MWC64_ALPHA + (result >> 32);
 	}
 	return(result);
 }
