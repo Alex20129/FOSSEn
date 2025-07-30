@@ -1,5 +1,5 @@
-#include <QRegularExpression>
 #include <QFile>
+#include "util.hpp"
 #include "crawler.hpp"
 #include "simple_hash_func.hpp"
 
@@ -15,12 +15,13 @@ Crawler::Crawler(QObject *parent) : QObject(parent)
 	mLoadingIntervalTimer=new QTimer(this);
 	mPhantom=new PhantomWrapper(this);
 	mIndexer=new Indexer(this);
-	mIndexer->initialize("in_test.sqlite");
+	mIndexer->initialize("in_test.bin");
 	mLoadingIntervalTimer->setSingleShot(1);
 	connect(mCrawlerPersonalThread, &QThread::started, this, &Crawler::onNewThreadStarted);
 	connect(mCrawlerPersonalThread, &QThread::finished, this, &Crawler::onNewThreadFinished);
 	connect(mPhantom, &PhantomWrapper::pageHasBeenLoaded, this, &Crawler::onPageHasBeenLoaded);
 	connect(mLoadingIntervalTimer, &QTimer::timeout, this, &Crawler::loadNextPage);
+	connect(this, &Crawler::needToIndexNewPage, mIndexer, &Indexer::addPage);
 }
 
 const PhantomWrapper *Crawler::getPhantom() const
@@ -33,40 +34,9 @@ const Indexer *Crawler::getIndexer() const
 	return mIndexer;
 }
 
-QMap<QString, int> Crawler::extractWordsAndFrequencies(const QString &text)
-{
-#ifndef NDEBUG
-	qDebug("Crawler::extractWordsAndFrequencies()");
-#endif
-	static const QRegularExpression wordsRegex("\\W+");
-	static const QRegularExpression digitsRegex("^[0-9]+$");
-	static const QSet<QString> stopWords =
-	{
-		"the", "and", "for", "with", "was", "such"
-	};
-	QMap<QString, int> wordMap;
-	QStringList words = text.toLower().split(wordsRegex, Qt::SkipEmptyParts);
-	for (const QString &word : words)
-	{
-		if (word.length()>2 && word.length()<32)
-		{
-			if (!stopWords.contains(word) && !digitsRegex.match(word).hasMatch())
-			{
-				wordMap[word] += 1;
-			}
-		}
-	}
-#ifndef NDEBUG
-	qDebug()<<wordMap.keys();
-#endif
-	return wordMap;
-}
-
 void Crawler::onNewThreadStarted()
 {
-#ifndef NDEBUG
 	qDebug("Crawler::onNewThreadStarted()");
-#endif
 	mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
 	mLoadingIntervalTimer->start();
 	emit started(this);
@@ -74,28 +44,22 @@ void Crawler::onNewThreadStarted()
 
 void Crawler::onNewThreadFinished()
 {
-#ifndef NDEBUG
 	qDebug("Crawler::onNewThreadFinished()");
 	qDebug()<<"Visited Pages:\n"<<sVisitedPages.values();
-#endif
 	emit finished(this);
 }
 
 void Crawler::loadNextPage()
 {
-#ifndef NDEBUG
 	qDebug("Crawler::loadNextPage()");
-#endif
 	QString nextURL;
 	mURLQueueMutex.lock();
 	if (!mURLList.isEmpty())
 	{
 		nextURL=mURLList.takeAt(mRNG->bounded(0, mURLList.count()));
 	}
-	mURLQueueMutex.unlock();
-#ifndef NDEBUG
 	qDebug() << mURLList.count() << "URLs pending on the list";
-#endif
+	mURLQueueMutex.unlock();
 	if(nextURL.length())
 	{
 		mPhantom->loadPage(nextURL);
@@ -108,21 +72,27 @@ static int visited_n=0;
 
 void Crawler::onPageHasBeenLoaded()
 {
-#ifndef NDEBUG
 	qDebug("Crawler::onPageHasBeenLoaded()");
-#endif
 
-	QString pageURL = mPhantom->getPageURL();
-	QString plainText = mPhantom->getPagePlainText();
+	QString pageURL = mPhantom->getPageURLEncoded();
+	QString pagePlainText = mPhantom->getPagePlainText();
+	QByteArray pageHtml=mPhantom->getPageHtml().toUtf8();
 	QStringList pageLinksList = mPhantom->extractPageLinks();
-	PageMetadata data;
+	PageMetadata pageMetadata;
+
+	pageMetadata.contentHash=xorshift_hash_64((uint8_t *)pageHtml.data(), pageHtml.size());
+	pageMetadata.timeStamp = QDateTime::currentDateTime();
+	pageMetadata.title = mPhantom->getPageTitle();
+	pageMetadata.url = mPhantom->getPageURL();
+	pageMetadata.words = ExtractWordsAndFrequencies(pagePlainText);
+
+	emit needToIndexNewPage(pageMetadata);
 
 #ifndef NDEBUG
 	qDebug() << pageURL;
-	QByteArray pageHtml=mPhantom->getPageHtml().toUtf8();
-	uint64_t pageHash=mwc_hash_64((uint8_t *)pageHtml.data(), pageHtml.size());
+	qDebug()<<pageMetadata.words.keys();
 
-	QFile pageHTMLFile(QString("page_")+QString::number(pageHash, 16)+QString(".html"));
+	QFile pageHTMLFile(QString("page_")+QString::number(pageMetadata.contentHash&0xFFFFFF, 16)+QString(".html"));
 	if (pageHTMLFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
 		pageHTMLFile.write(pageHtml);
@@ -133,10 +103,10 @@ void Crawler::onPageHasBeenLoaded()
 		qWarning() << "Failed to open page.html";
 	}
 
-	QFile pageTXTFile(QString("page_")+QString::number(pageHash, 16)+QString(".txt"));
+	QFile pageTXTFile(QString("page_")+QString::number(pageMetadata.contentHash&0xFFFFFF, 16)+QString(".txt"));
 	if (pageTXTFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
-		pageTXTFile.write(plainText.toUtf8());
+		pageTXTFile.write(pagePlainText.toUtf8());
 		pageTXTFile.close();
 	}
 	else
@@ -144,7 +114,7 @@ void Crawler::onPageHasBeenLoaded()
 		qWarning() << "Failed to open page.txt";
 	}
 
-	QFile pageLinksFile(QString("page_")+QString::number(pageHash, 16)+QString("_links.txt"));
+	QFile pageLinksFile(QString("page_")+QString::number(pageMetadata.contentHash&0xFFFFFF, 16)+QString("_links.txt"));
 	if (pageLinksFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
 		for(QString link : pageLinksList)
@@ -159,10 +129,6 @@ void Crawler::onPageHasBeenLoaded()
 	}
 #endif
 
-	data.timestamp = QDateTime::currentDateTime();
-	data.title = mPhantom->getPageTitle();
-	data.wordsAndFrequencies = extractWordsAndFrequencies(plainText);
-
 	sUnwantedLinksMutex.lock();
 	sVisitedPages.insert(pageURL);
 	sUnwantedLinksMutex.unlock();
@@ -173,7 +139,7 @@ void Crawler::onPageHasBeenLoaded()
 	}
 
 #ifndef NDEBUG
-	if(++visited_n>30)
+	if(++visited_n>40)
 	{
 		stop();
 		return;
@@ -216,25 +182,19 @@ void Crawler::stop()
 
 void Crawler::addURLToQueue(const QString &url_string)
 {
-#ifndef NDEBUG
 	qDebug("Crawler::addURLToQueue()");
-#endif
 	QUrl newUrl(url_string);
 	bool skipThisURL=0;
 	sUnwantedLinksMutex.lock();
 	if (sHostnameBlacklist.contains(newUrl.host()))
 	{
 		skipThisURL=1;
-#ifndef NDEBUG
 		qDebug() << "Skipping blacklisted host:" << newUrl.host();
-#endif
 	}
 	else if (sVisitedPages.contains(url_string))
 	{
 		skipThisURL=1;
-#ifndef NDEBUG
 		qDebug() << "Skipping visited URL:" << url_string;
-#endif
 	}
 	sUnwantedLinksMutex.unlock();
 	if (!skipThisURL)
@@ -242,16 +202,12 @@ void Crawler::addURLToQueue(const QString &url_string)
 		mURLQueueMutex.lock();
 		if (mURLList.contains(url_string))
 		{
-#ifndef NDEBUG
 			qDebug() << "Skipping duplicate URL:" << url_string;
-#endif
 		}
 		else
 		{
 			mURLList.append(url_string);
-#ifndef NDEBUG
 			qDebug() << "URL has been added to the processing queue:" << url_string;
-#endif
 		}
 		mURLQueueMutex.unlock();
 	}

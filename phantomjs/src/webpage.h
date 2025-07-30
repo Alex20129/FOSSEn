@@ -52,7 +52,8 @@ class WebPage : public QObject
 	Q_PROPERTY(QString frameTitle READ frameTitle)
 	Q_PROPERTY(QString content READ content WRITE setContent)
 	Q_PROPERTY(QString frameContent READ frameContent WRITE setFrameContent)
-	Q_PROPERTY(QString url READ url)
+	Q_PROPERTY(QUrl url READ url)
+	Q_PROPERTY(QString urlEncoded READ urlEncoded)
 	Q_PROPERTY(QString frameUrl READ frameUrl)
 	Q_PROPERTY(bool loading READ loading)
 	Q_PROPERTY(int loadingProgress READ loadingProgress)
@@ -94,8 +95,8 @@ public:
 
 	QString title() const;
 	QString frameTitle() const;
-
-	QString url() const;
+	QUrl url() const;
+	QString urlEncoded() const;
 	QString frameUrl() const;
 
 	bool loading() const;

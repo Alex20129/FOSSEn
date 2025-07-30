@@ -124,9 +124,14 @@ QString PhantomWrapper::getPageTitle() const
 	return mPage->title();
 }
 
-QString PhantomWrapper::getPageURL() const
+QUrl PhantomWrapper::getPageURL() const
 {
 	return mPage->url();
+}
+
+QString PhantomWrapper::getPageURLEncoded() const
+{
+	return mPage->urlEncoded();
 }
 
 QStringList PhantomWrapper::extractPageLinks() const

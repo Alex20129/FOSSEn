@@ -15,7 +15,6 @@ int main(int argc, char** argv)
 	QApplication fossenApp(argc, argv);
 	Crawler *myCrawler=new Crawler;
 
-	// const Indexer *indexer = myCrawler->getIndexer();
 	const PhantomWrapper *phantom = myCrawler->getPhantom();
 	if (phantom)
 	{
@@ -25,49 +24,53 @@ int main(int argc, char** argv)
 	QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QApplication::quit);
 
 	// ====== test zone
-	// qDebug() << indexer->searchWords(QStringList("test")).first().url;
-	// qDebug() << indexer->searchWords(QStringList("test")).first().title;
-	// qDebug() << indexer->searchWords(QStringList("test")).first().timestamp;
+	const Indexer *indexer = myCrawler->getIndexer();
+	QList<PageMetadata> searchResults=indexer->searchWords(QStringList("fast"));
+	qDebug() << searchResults.first().contentHash;
+	qDebug() << searchResults.first().title;
+	qDebug() << searchResults.first().timeStamp;
+	qDebug() << searchResults.first().url;
+	return 42;
 	// ======
 
-	QFile startConfigFile("start.json");
-	if (!startConfigFile.exists())
+	QFile crawlerConfigFile("crawler.json");
+	if (!crawlerConfigFile.exists())
 	{
-		qDebug() << "start.json doesn't exist";
+		qDebug() << "crawler.json doesn't exist";
 		return 22;
 	}
 
-	if(!startConfigFile.open(QIODevice::ReadOnly))
+	if(!crawlerConfigFile.open(QIODevice::ReadOnly))
 	{
-		qDebug() << "Couldn't open start.json";
+		qDebug() << "Couldn't open crawler.json";
 		return 33;
 	}
 
-	QByteArray startConfigFileData=startConfigFile.readAll();
-	startConfigFile.close();
+	QByteArray crawlerConfigData=crawlerConfigFile.readAll();
+	crawlerConfigFile.close();
 
 	QJsonParseError err;
-	QJsonDocument startConfigFileJsonDoc = QJsonDocument::fromJson(startConfigFileData, &err);
+	QJsonDocument crawlerConfigJsonDoc = QJsonDocument::fromJson(crawlerConfigData, &err);
 
 	if (err.error != QJsonParseError::NoError)
 	{
-		qDebug() << "Couldn't start.json :" << err.errorString();
+		qDebug() << "Couldn't parse crawler.json :" << err.errorString();
 		return 44;
 	}
 
-	if(!startConfigFileJsonDoc.isObject())
+	if(!crawlerConfigJsonDoc.isObject())
 	{
-		qDebug() << "Bad JSON in start.json file";
+		qDebug() << "Bad JSON in crawler.json file";
 		return 55;
 	}
 
-	QJsonObject startConfigFileJsonObject = startConfigFileJsonDoc.object();
+	QJsonObject rawlerConfigJsonObject = crawlerConfigJsonDoc.object();
 
-	for (const QJsonValue &url : startConfigFileJsonObject.value("start_urls").toArray())
+	for (const QJsonValue &url : rawlerConfigJsonObject.value("start_urls").toArray())
 	{
 		myCrawler->addURLToQueue(url.toString());
 	}
-	for (const QJsonValue &host : startConfigFileJsonObject.value("black_list").toArray())
+	for (const QJsonValue &host : rawlerConfigJsonObject.value("black_list").toArray())
 	{
 		myCrawler->addHostnameToBlacklist(host.toString());
 	}

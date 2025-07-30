@@ -1,18 +1,22 @@
 {
 	"start_urls":
 	[
-		"https://www.google.com/search?q=fast+sorting+algorithm",
-		"https://search.yahoo.com/search?p=fast+sorting+algorithm",
-		"https://www.ya.ru/search/?text=fast+sorting+algorithm",
+		"https://www.ibm.com/think/topics/large-language-models",
+		"https://medium.com/geekculture/inverse-kinematics-solver-in-c-e999f1b7f353",
+		"https://en.wikipedia.org/wiki/Attack_helicopter",
 		"https://www.bing.com/search?q=fast+sorting+algorithm",
+		"https://search.yahoo.com/search?p=fast+sorting+algorithm",
+		"https://www.google.com/search?q=fast+sorting+algorithm",
+		"https://www.ya.ru/search/?text=fast+sorting+algorithm",
 		"https://stackoverflow.com/search?q=malloc",
 		"https://www.lostfilm.tv/movies/",
 		"https://github.com/yacy/",
-		"https://habr.com/en/articles/",
-		"https://en.wikipedia.org/wiki/Attack_helicopter"
+		"https://habr.com/en/articles/"
 	],
 	"black_list":
 	[
+		"shop.github.com",
+		"thegithubshop.com",
 		"search.yahoo.com",
 		"www.linkedin.com",
 		"www.instagram.com",

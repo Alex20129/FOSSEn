@@ -2,7 +2,6 @@
 #define INDEXER_HPP
 
 #include <QObject>
-#include <QtSql/QSqlDatabase>
 #include <QUrl>
 #include <QMap>
 #include <QStringList>
@@ -10,23 +9,28 @@
 
 struct PageMetadata
 {
-	QDateTime timestamp;
+	uint64_t contentHash;
+	QDateTime timeStamp;
 	QString title;
 	QUrl url;
-	QMap<QString, int> wordsAndFrequencies;
+	QMap<QString, uint64_t> words;
 };
 
 class Indexer : public QObject
 {
 	Q_OBJECT
-	QSqlDatabase mDatabase;
+	QHash<QString, QSet<uint64_t>> localIndexTableOfContents;
+	QHash<uint64_t, PageMetadata*> localIndexStorage;
 public:
 	Indexer(QObject *parent = nullptr);
-	~Indexer();
-	bool initialize(const QString &dbPath);
-	void addPage(const PageMetadata &metadata, const QString &text);
-	// TODO: SQLite FTS5
+	//TODO: open, save, load and merge
+	void initialize(const QString &db_path);
+	void load(const QString &db_path);
+	void save(const QString &db_path);
+	void merge(const Indexer &other);
 	QList<PageMetadata> searchWords(const QStringList &words) const;
+public slots:
+	void addPage(const PageMetadata &page_metadata);
 };
 
 #endif // INDEXER_HPP

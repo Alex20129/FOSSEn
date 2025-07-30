@@ -26,7 +26,8 @@ public:
 	QString getPageHtml() const;
 	QString getPagePlainText() const;
 	QString getPageTitle() const;
-	QString getPageURL() const;
+	QUrl getPageURL() const;
+	QString getPageURLEncoded() const;
 	QStringList extractPageLinks() const;
 };
 

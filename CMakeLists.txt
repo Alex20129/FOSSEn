@@ -41,4 +41,6 @@ ADD_EXECUTABLE(${CMAKE_PROJECT_NAME}
 	simple_hash_func.hpp
 	simple_hash_func.cpp
 	phantom_wrapper.hpp
-	phantom_wrapper.cpp)
+	phantom_wrapper.cpp
+	util.hpp
+	util.cpp)

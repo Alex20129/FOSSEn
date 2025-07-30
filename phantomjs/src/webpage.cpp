@@ -493,7 +493,12 @@ QString WebPage::frameTitle() const
 	return m_currentFrame->title();
 }
 
-QString WebPage::url() const
+QUrl WebPage::url() const
+{
+	return m_mainFrame->url();
+}
+
+QString WebPage::urlEncoded() const
 {
 	return m_mainFrame->url().toEncoded();
 }
@@ -874,33 +879,33 @@ CookieJar* WebPage::cookieJar()
 bool WebPage::setCookies(const QVariantList& cookies)
 {
 	// Delete all the cookies for this URL
-	m_cookieJar->deleteCookies(this->url());
+	m_cookieJar->deleteCookies(this->urlEncoded());
 	// Add a new set of cookies foor this URL
-	return m_cookieJar->addCookiesFromMap(cookies, this->url());
+	return m_cookieJar->addCookiesFromMap(cookies, this->urlEncoded());
 }
 
 QVariantList WebPage::cookies() const
 {
 	// Return all the Cookies visible to this Page, as a list of Maps (aka JSON in JS space)
-	return m_cookieJar->cookiesToMap(this->url());
+	return m_cookieJar->cookiesToMap(this->urlEncoded());
 }
 
 bool WebPage::addCookie(const QVariantMap& cookie)
 {
-	return m_cookieJar->addCookieFromMap(cookie, this->url());
+	return m_cookieJar->addCookieFromMap(cookie, this->urlEncoded());
 }
 
 bool WebPage::deleteCookie(const QString& cookieName)
 {
 	if (!cookieName.isEmpty()) {
-		return m_cookieJar->deleteCookie(cookieName, this->url());
+		return m_cookieJar->deleteCookie(cookieName, this->urlEncoded());
 	}
 	return false;
 }
 
 bool WebPage::clearCookies()
 {
-	return m_cookieJar->deleteCookies(this->url());
+	return m_cookieJar->deleteCookies(this->urlEncoded());
 }
 
 void WebPage::openUrl(const QString& address, const QVariant& op, const QVariantMap& settings)
@@ -1665,7 +1670,6 @@ static void injectCallbacksObjIntoFrame(QWebFrame* frame, WebpageCallbacks* call
 
 void WebPage::setupFrame(QWebFrame* frame)
 {
-	qDebug() << "WebPage - setupFrame" << (frame == Q_NULLPTR ? "" : frame->frameName());
 	// Inject the Callbacks object in the main frame
 	injectCallbacksObjIntoFrame(frame == Q_NULLPTR ? m_mainFrame : frame, m_callbacks);
 }

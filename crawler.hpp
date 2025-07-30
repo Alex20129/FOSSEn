@@ -25,10 +25,10 @@ class Crawler : public QObject
 	static QSet<QString> sVisitedPages;
 	static QSet<QString> sHostnameBlacklist;
 	static QMutex sUnwantedLinksMutex;
-	QMap<QString, int> extractWordsAndFrequencies(const QString &text);
 signals:
 	void started(Crawler *crawler);
 	void finished(Crawler *crawler);
+	void needToIndexNewPage(PageMetadata page_metadata);
 private slots:
 	void onNewThreadStarted();
 	void onNewThreadFinished();
