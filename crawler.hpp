@@ -28,7 +28,7 @@ class Crawler : public QObject
 signals:
 	void started(Crawler *crawler);
 	void finished(Crawler *crawler);
-	void needToIndexNewPage(PageMetadata page_metadata);
+	void needToIndexNewPage(const PageMetadata &page_metadata);
 private slots:
 	void onNewThreadStarted();
 	void onNewThreadFinished();
