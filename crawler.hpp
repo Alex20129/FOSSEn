@@ -9,29 +9,24 @@
 #include "phantom_wrapper.hpp"
 #include "indexer.hpp"
 
-#define PAGE_LOADING_INTERVAL_MIN 960
-#define PAGE_LOADING_INTERVAL_MAX 3840
+#define PAGE_LOADING_INTERVAL_MIN 500
+#define PAGE_LOADING_INTERVAL_MAX 5000
 
 class Crawler : public QObject
 {
 	Q_OBJECT
 	QRandomGenerator *mRNG;
-	QThread *mCrawlerPersonalThread;
+	QThread *mCrawlerPrivateThread;
 	QTimer *mLoadingIntervalTimer;
 	PhantomWrapper *mPhantom;
 	Indexer *mIndexer;
-	QList<QString> mURLList;
-	QMutex mURLQueueMutex;
-	static QSet<QString> sVisitedPages;
+	QList<QString> mPendingURLList;
+	static QSet<QString> sVisitedURLList;
 	static QSet<QString> sHostnameBlacklist;
 	static QMutex sUnwantedLinksMutex;
-signals:
-	void started(Crawler *crawler);
-	void finished(Crawler *crawler);
-	void needToIndexNewPage(const PageMetadata &page_metadata);
 private slots:
-	void onNewThreadStarted();
-	void onNewThreadFinished();
+	void onThreadStarted();
+	void onThreadFinished();
 	void loadNextPage();
 	void onPageHasBeenLoaded();
 public:
@@ -40,8 +35,15 @@ public:
 	const Indexer *getIndexer() const;
 	void start();
 	void stop();
+	void addURLsToQueue(const QStringList &url_string_list);
 	void addURLToQueue(const QString &url_string);
 	void addHostnameToBlacklist(const QString &hostname);
+public slots:
+	void searchTest();
+signals:
+	void started(Crawler *crawler);
+	void finished(Crawler *crawler);
+	void needToIndexNewPage(PageMetadata page_metadata);
 };
 
 #endif // CRAWLER_HPP

@@ -21,18 +21,6 @@ int main(int argc, char** argv)
 		phantom->loadCookiesFromFireFoxProfile("/home/alex/snap/firefox/common/.mozilla/firefox/profiles.ini");
 	}
 
-	QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QApplication::quit);
-
-	// ====== test zone
-	const Indexer *indexer = myCrawler->getIndexer();
-	QList<PageMetadata> searchResults=indexer->searchWords(QStringList("fast"));
-	qDebug() << searchResults.first().contentHash;
-	qDebug() << searchResults.first().title;
-	qDebug() << searchResults.first().timeStamp;
-	qDebug() << searchResults.first().url;
-	return 42;
-	// ======
-
 	QFile crawlerConfigFile("crawler.json");
 	if (!crawlerConfigFile.exists())
 	{
@@ -74,6 +62,12 @@ int main(int argc, char** argv)
 	{
 		myCrawler->addHostnameToBlacklist(host.toString());
 	}
+
+	// ====== test zone
+	// const Indexer *indexer = myCrawler->getIndexer();
+	// QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QApplication::quit);
+	QObject::connect(myCrawler, &Crawler::finished, myCrawler, &Crawler::searchTest);
+	// ======
 
 	QTimer::singleShot(0, myCrawler, &Crawler::start);
 

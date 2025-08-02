@@ -23,6 +23,7 @@ class Indexer : public QObject
 	QHash<uint64_t, PageMetadata*> localIndexStorage;
 public:
 	Indexer(QObject *parent = nullptr);
+	~Indexer();
 	//TODO: open, save, load and merge
 	void initialize(const QString &db_path);
 	void load(const QString &db_path);
@@ -30,7 +31,7 @@ public:
 	void merge(const Indexer &other);
 	QList<PageMetadata> searchWords(const QStringList &words) const;
 public slots:
-	void addPage(const PageMetadata &page_metadata);
+	void addPage(PageMetadata page_metadata);
 };
 
 #endif // INDEXER_HPP

@@ -3,22 +3,23 @@
 #include "crawler.hpp"
 #include "simple_hash_func.hpp"
 
-QSet<QString> Crawler::sVisitedPages;
+QSet<QString> Crawler::sVisitedURLList;
 QSet<QString> Crawler::sHostnameBlacklist;
+
 QMutex Crawler::sUnwantedLinksMutex;
 
 Crawler::Crawler(QObject *parent) : QObject(parent)
 {
 	uint32_t rngSeed=QDateTime::currentSecsSinceEpoch()+reinterpret_cast<uintptr_t>(this);
 	mRNG=new QRandomGenerator(rngSeed);
-	mCrawlerPersonalThread=new QThread(this);
+	mCrawlerPrivateThread=new QThread(this);
 	mLoadingIntervalTimer=new QTimer(this);
 	mPhantom=new PhantomWrapper(this);
 	mIndexer=new Indexer(this);
 	mIndexer->initialize("in_test.bin");
 	mLoadingIntervalTimer->setSingleShot(1);
-	connect(mCrawlerPersonalThread, &QThread::started, this, &Crawler::onNewThreadStarted);
-	connect(mCrawlerPersonalThread, &QThread::finished, this, &Crawler::onNewThreadFinished);
+	connect(mCrawlerPrivateThread, &QThread::started, this, &Crawler::onThreadStarted);
+	connect(mCrawlerPrivateThread, &QThread::finished, this, &Crawler::onThreadFinished);
 	connect(mPhantom, &PhantomWrapper::pageHasBeenLoaded, this, &Crawler::onPageHasBeenLoaded);
 	connect(mLoadingIntervalTimer, &QTimer::timeout, this, &Crawler::loadNextPage);
 	connect(this, &Crawler::needToIndexNewPage, mIndexer, &Indexer::addPage);
@@ -34,7 +35,7 @@ const Indexer *Crawler::getIndexer() const
 	return mIndexer;
 }
 
-void Crawler::onNewThreadStarted()
+void Crawler::onThreadStarted()
 {
 	qDebug("Crawler::onNewThreadStarted()");
 	mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
@@ -42,10 +43,12 @@ void Crawler::onNewThreadStarted()
 	emit started(this);
 }
 
-void Crawler::onNewThreadFinished()
+void Crawler::onThreadFinished()
 {
 	qDebug("Crawler::onNewThreadFinished()");
-	qDebug()<<"Visited Pages:\n"<<sVisitedPages.values();
+	sUnwantedLinksMutex.lock();
+	qDebug()<<"Visited Pages:\n"<<sVisitedURLList.values();
+	sUnwantedLinksMutex.unlock();
 	emit finished(this);
 }
 
@@ -53,13 +56,11 @@ void Crawler::loadNextPage()
 {
 	qDebug("Crawler::loadNextPage()");
 	QString nextURL;
-	mURLQueueMutex.lock();
-	if (!mURLList.isEmpty())
+	if (!mPendingURLList.isEmpty())
 	{
-		nextURL=mURLList.takeAt(mRNG->bounded(0, mURLList.count()));
+		nextURL=mPendingURLList.takeAt(mRNG->bounded(0, mPendingURLList.count()));
 	}
-	qDebug() << mURLList.count() << "URLs pending on the list";
-	mURLQueueMutex.unlock();
+	qDebug() << mPendingURLList.count() << "URLs pending on the list";
 	if(nextURL.length())
 	{
 		mPhantom->loadPage(nextURL);
@@ -87,6 +88,8 @@ void Crawler::onPageHasBeenLoaded()
 	pageMetadata.words = ExtractWordsAndFrequencies(pagePlainText);
 
 	emit needToIndexNewPage(pageMetadata);
+
+	addURLsToQueue(pageLinksList);
 
 #ifndef NDEBUG
 	qDebug() << pageURL;
@@ -130,19 +133,13 @@ void Crawler::onPageHasBeenLoaded()
 #endif
 
 	sUnwantedLinksMutex.lock();
-	sVisitedPages.insert(pageURL);
+	sVisitedURLList.insert(pageURL);
 	sUnwantedLinksMutex.unlock();
 
-	for (const QString &link : pageLinksList)
-	{
-		addURLToQueue(link);
-	}
-
 #ifndef NDEBUG
-	if(++visited_n>40)
+	if(++visited_n>5)
 	{
 		stop();
-		return;
 	}
 	else
 #endif
@@ -154,30 +151,31 @@ void Crawler::onPageHasBeenLoaded()
 
 void Crawler::start()
 {
-#ifndef NDEBUG
 	qDebug("Crawler::start()");
-#endif
 	if(this->parent())
 	{
 		this->setParent(nullptr);
 	}
-	this->moveToThread(mCrawlerPersonalThread);
-	mCrawlerPersonalThread->start();
+	this->moveToThread(mCrawlerPrivateThread);
+	mCrawlerPrivateThread->start();
 }
 
 void Crawler::stop()
 {
-#ifndef NDEBUG
 	qDebug("Crawler::stop()");
-#endif
 	mLoadingIntervalTimer->stop();
-	mURLQueueMutex.lock();
-#ifndef NDEBUG
-	qDebug() << "unvisited pages:" << mURLList;
-#endif
-	mURLList.clear();
-	mURLQueueMutex.unlock();
-	mCrawlerPersonalThread->quit();
+	qDebug() << "unvisited pages:" << mPendingURLList;
+	mPendingURLList.clear();
+	mCrawlerPrivateThread->quit();
+}
+
+void Crawler::addURLsToQueue(const QStringList &url_string_list)
+{
+	qDebug("Crawler::addURLsToQueue()");
+	for (const QString &link : url_string_list)
+	{
+		addURLToQueue(link);
+	}
 }
 
 void Crawler::addURLToQueue(const QString &url_string)
@@ -191,7 +189,7 @@ void Crawler::addURLToQueue(const QString &url_string)
 		skipThisURL=1;
 		qDebug() << "Skipping blacklisted host:" << newUrl.host();
 	}
-	else if (sVisitedPages.contains(url_string))
+	else if (sVisitedURLList.contains(url_string))
 	{
 		skipThisURL=1;
 		qDebug() << "Skipping visited URL:" << url_string;
@@ -199,45 +197,42 @@ void Crawler::addURLToQueue(const QString &url_string)
 	sUnwantedLinksMutex.unlock();
 	if (!skipThisURL)
 	{
-		mURLQueueMutex.lock();
-		if (mURLList.contains(url_string))
+		if (mPendingURLList.contains(url_string))
 		{
-			qDebug() << "Skipping duplicate URL:" << url_string;
+			qDebug() << "Skipping duplicate URL:\n" << url_string;
 		}
 		else
 		{
-			mURLList.append(url_string);
-			qDebug() << "URL has been added to the processing queue:" << url_string;
+			qDebug() << "Adding URL to the processing list:\n" << url_string;
+			mPendingURLList.append(url_string);
 		}
-		mURLQueueMutex.unlock();
 	}
 }
 
 void Crawler::addHostnameToBlacklist(const QString &hostname)
 {
-#ifndef NDEBUG
-	qDebug("Crawler::addHostToBlacklist()");
-#endif
-	QString shortName;
-	if(hostname.startsWith("www."))
-	{
-		shortName=hostname;
-		shortName.remove(0, 4);
-	}
+	qDebug("Crawler::addHostnameToBlacklist()");
 	sUnwantedLinksMutex.lock();
 	if (!sHostnameBlacklist.contains(hostname))
 	{
 		sHostnameBlacklist.insert(hostname);
-#ifndef NDEBUG
-		qDebug() << "Host address has been added to the blacklist:" << hostname;
-#endif
-		if(shortName.length())
-		{
-			sHostnameBlacklist.insert(shortName);
-#ifndef NDEBUG
-			qDebug() << "Host address has been added to the blacklist:" << shortName;
-#endif
-		}
+		qDebug() << "Host name has been added to the blacklist:" << hostname;
 	}
 	sUnwantedLinksMutex.unlock();
+}
+
+void Crawler::searchTest()
+{
+	qDebug("Crawler::searchTest()");
+	QStringList words;
+	words.append("algorithm");
+	QList<PageMetadata> searchResults=mIndexer->searchWords(words);
+	for(const PageMetadata page : searchResults)
+	{
+		qDebug() << "=================";
+		qDebug() << page.contentHash;
+		qDebug() << page.title;
+		qDebug() << page.timeStamp;
+		qDebug() << page.url;
+	}
 }

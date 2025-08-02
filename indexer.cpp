@@ -1,9 +1,17 @@
 #include <QRegularExpression>
 #include <QDebug>
+#include <QFile>
+#include <QDataStream>
 #include "indexer.hpp"
 
 Indexer::Indexer(QObject *parent) : QObject(parent)
 {
+}
+
+Indexer::~Indexer()
+{
+	qDeleteAll(localIndexStorage);
+	localIndexStorage.clear();
 }
 
 //TODO: open, save, load and merge
@@ -85,7 +93,7 @@ QList<PageMetadata> Indexer::searchWords(const QStringList &words) const
 	return results;
 }
 
-void Indexer::addPage(const PageMetadata &page_metadata)
+void Indexer::addPage(PageMetadata page_metadata)
 {
 	if(page_metadata.words.isEmpty())
 	{
@@ -99,7 +107,7 @@ void Indexer::addPage(const PageMetadata &page_metadata)
 	localIndexStorage.insert(page_metadata.contentHash, pageMetaDataCopy);
 	for (auto it = page_metadata.words.constBegin(); it != page_metadata.words.constEnd(); it++)
 	{
-		const QString &word = it.key().toLower();
+		const QString word = it.key().toLower();
 		localIndexTableOfContents[word].insert(page_metadata.contentHash);
 	}
 }
