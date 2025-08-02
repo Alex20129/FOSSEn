@@ -1,7 +1,5 @@
 #include <QRegularExpression>
 #include <QDebug>
-#include <QFile>
-#include <QDataStream>
 #include "indexer.hpp"
 
 Indexer::Indexer(QObject *parent) : QObject(parent)
@@ -14,7 +12,7 @@ Indexer::~Indexer()
 	localIndexStorage.clear();
 }
 
-//TODO: open, save, load and merge
+//TODO: init, save, load
 void Indexer::initialize(const QString &db_path)
 {
 }

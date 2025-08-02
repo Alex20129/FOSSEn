@@ -24,7 +24,7 @@ class Indexer : public QObject
 public:
 	Indexer(QObject *parent = nullptr);
 	~Indexer();
-	//TODO: open, save, load and merge
+	//TODO: init, save, load
 	void initialize(const QString &db_path);
 	void load(const QString &db_path);
 	void save(const QString &db_path);
