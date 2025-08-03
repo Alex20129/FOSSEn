@@ -49,12 +49,9 @@ class WebPage : public QObject
 {
 	Q_OBJECT
 	Q_PROPERTY(QString title READ title)
-	Q_PROPERTY(QString frameTitle READ frameTitle)
 	Q_PROPERTY(QString content READ content WRITE setContent)
-	Q_PROPERTY(QString frameContent READ frameContent WRITE setFrameContent)
 	Q_PROPERTY(QUrl url READ url)
 	Q_PROPERTY(QString urlEncoded READ urlEncoded)
-	Q_PROPERTY(QString frameUrl READ frameUrl)
 	Q_PROPERTY(bool loading READ loading)
 	Q_PROPERTY(int loadingProgress READ loadingProgress)
 	Q_PROPERTY(bool canGoBack READ canGoBack)
@@ -89,15 +86,11 @@ public:
 	QWebFrame* mainFrame();
 
 	QString content() const;
-	QString frameContent() const;
 	void setContent(const QString& content);
-	void setFrameContent(const QString& content);
 
 	QString title() const;
-	QString frameTitle() const;
 	QUrl url() const;
 	QString urlEncoded() const;
-	QString frameUrl() const;
 
 	bool loading() const;
 	int loadingProgress() const;
@@ -266,7 +259,6 @@ public slots:
 	void sendEvent(const QString& type, const QVariant& arg1 = QVariant(), const QVariant& arg2 = QVariant(), const QString& mouseButton = QString(), const QVariant& modifierArg = QVariant());
 
 	void setContent(const QString& content, const QString& baseUrl);
-	void setFrameContent(const QString& content, const QString& baseUrl);
 	/**
 	 * Returns a Child Page that matches the given <code>"window.name"</code>.
 	 * This utility method is faster than accessing the

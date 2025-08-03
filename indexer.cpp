@@ -15,18 +15,25 @@ Indexer::~Indexer()
 //TODO: init, save, load
 void Indexer::initialize(const QString &db_path)
 {
+	qDebug("Indexer::initialize");
+	qDebug()<<db_path;
 }
 
 void Indexer::load(const QString &db_path)
 {
+	qDebug("Indexer::load");
+	qDebug()<<db_path;
 }
 
 void Indexer::save(const QString &db_path)
 {
+	qDebug("Indexer::save");
+	qDebug()<<db_path;
 }
 
 void Indexer::merge(const Indexer &other)
 {
+	qDebug("Indexer::merge");
 	for (auto it = other.localIndexStorage.constBegin(); it != other.localIndexStorage.constEnd(); it++)
 	{
 		uint64_t hash = it.key();
@@ -101,11 +108,15 @@ void Indexer::addPage(PageMetadata page_metadata)
 	{
 		return;
 	}
+	if(localIndexStorage.contains(page_metadata.contentHash))
+	{
+		return;
+	}
 	PageMetadata *pageMetaDataCopy=new PageMetadata(page_metadata);
 	localIndexStorage.insert(page_metadata.contentHash, pageMetaDataCopy);
 	for (auto it = page_metadata.words.constBegin(); it != page_metadata.words.constEnd(); it++)
 	{
-		const QString word = it.key().toLower();
+		const QString word = it.key();
 		localIndexTableOfContents[word].insert(page_metadata.contentHash);
 	}
 }

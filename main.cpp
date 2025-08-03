@@ -65,8 +65,8 @@ int main(int argc, char** argv)
 
 	// ====== test zone
 	// const Indexer *indexer = myCrawler->getIndexer();
-	// QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QApplication::quit);
-	QObject::connect(myCrawler, &Crawler::finished, myCrawler, &Crawler::searchTest);
+	QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QApplication::quit);
+	// QObject::connect(myCrawler, &Crawler::finished, myCrawler, &Crawler::searchTest);
 	// ======
 
 	QTimer::singleShot(0, myCrawler, &Crawler::start);

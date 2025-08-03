@@ -5,19 +5,16 @@
 
 QMap<QString, uint64_t> ExtractWordsAndFrequencies(const QString &text)
 {
-	static const QRegularExpression wordsRegex("\\W+");
+	const QString lowerText=text.toLower();
+	static const QRegularExpression wordsRegex("[^a-zа-яё]+");
 	static const QRegularExpression digitsRegex("^[0-9]+$");
-	static const QSet<QString> stopWords =
-	{
-		"the", "and", "for", "with", "was", "such"
-	};
 	QMap<QString, uint64_t> wordMap;
-	QStringList words = text.toLower().split(wordsRegex, Qt::SkipEmptyParts);
+	const QStringList words = lowerText.split(wordsRegex, Qt::SkipEmptyParts);
 	for (const QString &word : words)
 	{
-		if (word.length()>2 && word.length()<32)
+		if (word.length()>2 && word.length()<33)
 		{
-			if (!stopWords.contains(word) && !digitsRegex.match(word).hasMatch())
+			if (!digitsRegex.match(word).hasMatch())
 			{
 				wordMap[word] += 1;
 			}

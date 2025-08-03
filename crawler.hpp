@@ -20,10 +20,11 @@ class Crawler : public QObject
 	QTimer *mLoadingIntervalTimer;
 	PhantomWrapper *mPhantom;
 	Indexer *mIndexer;
-	QList<QString> mPendingURLList;
+	QList<QString> *mURLListActive, *mURLListQueued;
 	static QSet<QString> sVisitedURLList;
 	static QSet<QString> sHostnameBlacklist;
 	static QMutex sUnwantedLinksMutex;
+	void swapURLLists();
 private slots:
 	void onThreadStarted();
 	void onThreadFinished();
@@ -31,6 +32,7 @@ private slots:
 	void onPageHasBeenLoaded();
 public:
 	Crawler(QObject *parent=nullptr);
+	~Crawler();
 	const PhantomWrapper *getPhantom() const;
 	const Indexer *getIndexer() const;
 	void start();

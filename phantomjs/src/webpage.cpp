@@ -450,11 +450,6 @@ QString WebPage::content() const
 	return m_mainFrame->toHtml();
 }
 
-QString WebPage::frameContent() const
-{
-	return m_currentFrame->toHtml();
-}
-
 void WebPage::setContent(const QString& content)
 {
 	m_mainFrame->setHtml(content);
@@ -462,35 +457,17 @@ void WebPage::setContent(const QString& content)
 
 void WebPage::setContent(const QString& content, const QString& baseUrl)
 {
-	if (baseUrl == "about:blank") {
+	if (baseUrl == "about:blank")
+	{
 		m_mainFrame->setHtml(BLANK_HTML);
 	} else {
 		m_mainFrame->setHtml(content, QUrl(baseUrl));
 	}
 }
 
-void WebPage::setFrameContent(const QString& content)
-{
-	m_currentFrame->setHtml(content);
-}
-
-void WebPage::setFrameContent(const QString& content, const QString& baseUrl)
-{
-	if (baseUrl == "about:blank") {
-		m_currentFrame->setHtml(BLANK_HTML);
-	} else {
-		m_currentFrame->setHtml(content, QUrl(baseUrl));
-	}
-}
-
 QString WebPage::title() const
 {
 	return m_mainFrame->title();
-}
-
-QString WebPage::frameTitle() const
-{
-	return m_currentFrame->title();
 }
 
 QUrl WebPage::url() const
@@ -503,18 +480,9 @@ QString WebPage::urlEncoded() const
 	return m_mainFrame->url().toEncoded();
 }
 
-QString WebPage::frameUrl() const
-{
-	// Issue #11035: QWebFrame::url() is only set by QWebFrame::setUrl();
-	// it doesn't reflect a URL specified in a <frame> tag.
-	// QWebFrame::baseUrl() will be other than expected in the presence of
-	// <base href>, but it's less wrong.
-	return m_currentFrame->baseUrl().toEncoded();
-}
-
+// Return "true" if Load Progress is "]0, 100["
 bool WebPage::loading() const
 {
-	// Return "true" if Load Progress is "]0, 100["
 	return (0 < m_loadingProgress && m_loadingProgress < 100);
 }
 
@@ -530,7 +498,8 @@ bool WebPage::canGoBack()
 
 bool WebPage::goBack()
 {
-	if (canGoBack()) {
+	if (canGoBack())
+	{
 		m_customWebPage->history()->back();
 		return true;
 	}
@@ -578,16 +547,13 @@ void WebPage::stop()
 	m_customWebPage->triggerAction(QWebPage::Stop);
 }
 
+#include <QTextDocument>
 QString WebPage::plainText() const
 {
-	QString plainText=m_mainFrame->toHtml();
-	static const QRegularExpression scriptStyleRegex("<(script|style)[^>]*>.*?</\\1>", QRegularExpression::DotMatchesEverythingOption);
-	plainText.remove(scriptStyleRegex);
-	static const QRegularExpression htmlTagRegex("<[^>]+>");
-	plainText.replace(htmlTagRegex, " ");
-	plainText=plainText.simplified();
+	QTextDocument tDoc;
+	tDoc.setHtml(m_mainFrame->toHtml());
+	QString plainText = tDoc.toPlainText().simplified();
 	return plainText;
-	// return m_mainFrame->toPlainText();
 }
 
 QString WebPage::framePlainText() const
@@ -780,8 +746,7 @@ QVariant WebPage::evaluateJavaScript(const QString& code)
 
 	qDebug() << "WebPage - evaluateJavaScript" << function;
 
-	evalResult = m_currentFrame->evaluateJavaScript(
-		function);
+	evalResult = m_currentFrame->evaluateJavaScript(function);
 
 	qDebug() << "WebPage - evaluateJavaScript result" << evalResult;
 
@@ -954,12 +919,14 @@ void WebPage::openUrl(const QString& address, const QVariant& op, const QVariant
 		networkOp = QNetworkAccessManager::DeleteOperation;
 	}
 
-	if (networkOp == QNetworkAccessManager::UnknownOperation) {
+	if (networkOp == QNetworkAccessManager::UnknownOperation)
+	{
 		m_mainFrame->evaluateJavaScript("console.error('Unknown network operation: " + operation + "');");
 		return;
 	}
 
-	if (address == "about:blank") {
+	if (address == "about:blank")
+	{
 		m_mainFrame->setHtml(BLANK_HTML);
 	} else {
 		QUrl url = QUrl::fromEncoded(QByteArray(address.toLatin1()));
