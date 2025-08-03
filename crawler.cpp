@@ -153,7 +153,7 @@ void Crawler::onPageHasBeenLoaded()
 	QFile pageWordsFile(QString("page_")+QString::number(pageMetadata.contentHash&UINT32_MAX, 16).toUpper() + QString("_words.txt"));
 	if (pageWordsFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
-		for(const QString word : pageMetadata.words.keys())
+		for(const QString &word : pageMetadata.words.keys())
 		{
 			pageWordsFile.write(word.toUtf8()+" "+QString::number(pageMetadata.words[word]).toUtf8()+QByteArray("\n"));
 		}
@@ -257,7 +257,7 @@ void Crawler::searchTest()
 	QStringList words;
 	words.append("algorithm");
 	QList<PageMetadata> searchResults=mIndexer->searchWords(words);
-	for(const PageMetadata page : searchResults)
+	for(const PageMetadata &page : searchResults)
 	{
 		qDebug() << "=================";
 		qDebug() << page.contentHash;

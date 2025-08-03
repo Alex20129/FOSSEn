@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 PROJECT(phantomjs)
 
 SET(CMAKE_CXX_STANDARD 11)
@@ -6,9 +6,9 @@ SET(CMAKE_CXX_STANDARD 11)
 find_package(Qt5 COMPONENTS Core Network WebKitWidgets REQUIRED)
 find_package(Threads REQUIRED)
 
-message("Qt version ${Qt5Core_VERSION}")
+MESSAGE("Qt version ${Qt5Core_VERSION}")
 if (Qt5Core_VERSION VERSION_LESS 5.15)
-  message(FATAL_ERROR "This version of Qt is not supported. Please use Qt 5.15 or later")
+	MESSAGE(FATAL_ERROR "This version of Qt is not supported. Please use Qt 5.15 or later")
 endif()
 
 SET(CMAKE_AUTOMOC ON)

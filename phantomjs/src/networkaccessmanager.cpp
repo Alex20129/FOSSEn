@@ -211,7 +211,7 @@ void NetworkAccessManager::prepareSslConfiguration(const Config* config)
 	if (!config->sslCiphers().isEmpty())
 	{
 		QList<QSslCipher> cipherList;
-		foreach (const QString& cipherName, config->sslCiphers().split(QLatin1String(":"), QString::SkipEmptyParts))
+		foreach (const QString& cipherName, config->sslCiphers().split(QLatin1String(":"), Qt::SkipEmptyParts))
 		{
 			QSslCipher cipher(cipherName);
 			if (!cipher.isNull())
