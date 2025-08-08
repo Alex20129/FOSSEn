@@ -1,5 +1,5 @@
 # Description
-'FOSSEn' is a free and open source search engine written in C/C++. The basic idea behind ​​this project is to implement an alternative client for the 'YaCy' network.
+'FOSSEn' is a free and open source search engine written in C/C++.
 
 # Requirements
 To build it you will need to install some development packages:
