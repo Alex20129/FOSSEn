@@ -20,7 +20,8 @@ class Crawler : public QObject
 	QTimer *mLoadingIntervalTimer;
 	PhantomWrapper *mPhantom;
 	Indexer *mIndexer;
-	QList<QString> *mURLListActive, *mURLListQueued;
+	QList<QUrl> *mURLListActive, *mURLListQueued;
+	QHash<QString, QString> mCrawlingZones;
 	static QSet<QString> sVisitedURLList;
 	static QSet<QString> sHostnameBlacklist;
 	static QMutex sUnwantedLinksMutex;
@@ -37,9 +38,10 @@ public:
 	const Indexer *getIndexer() const;
 	void start();
 	void stop();
-	void addURLsToQueue(const QStringList &url_string_list);
-	void addURLToQueue(const QString &url_string);
+	void addURLsToQueue(const QList<QUrl> &urls);
+	void addURLToQueue(const QUrl &url);
 	void addHostnameToBlacklist(const QString &hostname);
+	void addCrawlingZone(const QUrl &zone_url);
 public slots:
 	void searchTest();
 signals:

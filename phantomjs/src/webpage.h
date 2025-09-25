@@ -229,7 +229,7 @@ public:
 	QString focusedFrameName() const;
 
 public slots:
-	void openUrl(const QString& address, const QVariant& op, const QVariantMap& settings);
+	void openUrl(const QUrl &url, const QVariant &op, const QVariantMap &settings);
 	void release();
 	void close();
 

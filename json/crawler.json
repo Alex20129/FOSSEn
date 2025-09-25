@@ -1,19 +1,54 @@
 {
 	"start_urls":
 	[
-		"https://ru.wikipedia.org",
-		"https://en.wikipedia.org",
-		"https://rutracker.org/forum/index.php",
-		"https://www.ibm.com/think/topics/large-language-models",
-		"https://search.yahoo.com/search?p=fast+sorting+algorithm",
-		"https://www.google.com/search?q=fast+sorting+algorithm",
-		"https://www.ya.ru/search/?text=fast+sorting+algorithm",
-		"https://stackoverflow.com/search?q=qTimer",
-		"https://stackexchange.com/search?q=function",
-		"https://www.geeksforgeeks.org/search/?gq=bloom+filter",
-		"https://www.lostfilm.tv/movies/",
-		"https://github.com/yacy/",
-		"https://habr.com/en/articles/"
+		{
+			"url": "https://stackoverflow.com/search?q=qTimer",
+			"zone_prefix": "https://stackoverflow.com/questions/"
+		},
+		{
+			"url": "https://ru.wikipedia.org/wiki/PCI_Express",
+			"zone_prefix": "https://ru.wikipedia.org/wiki/"
+		},
+		{
+			"url": "https://en.wikipedia.org/wiki/Double_hashing",
+			"zone_prefix": "https://en.wikipedia.org/wiki/"
+		},
+		{
+			"url": "https://www.geeksforgeeks.org/search/?gq=bloom+filter",
+			"zone_prefix": "https://www.geeksforgeeks.org/"
+		},
+		{
+			"url": "https://rutracker.org/forum/index.php",
+			"zone_prefix": "https://rutracker.org/forum/"
+		},
+		{
+			"url": "https://www.ibm.com/think/topics/large-language-models",
+			"zone_prefix": ""
+		},
+		{
+			"url": "https://search.yahoo.com/search?p=fast+sorting+algorithm",
+			"zone_prefix": ""
+		},
+		{
+			"url": "https://www.google.com/search?q=fast+sorting+algorithm",
+			"zone_prefix": "https://www.google.com/search"
+		},
+		{
+			"url": "https://www.ya.ru/search/?text=fast+sorting+algorithm",
+			"zone_prefix": "https://www.ya.ru/search"
+		},
+		{
+			"url": "https://raspberrypi.stackexchange.com/questions/139913/ipv4-link-local-address-with-networkmanager",
+			"zone_prefix": "https://raspberrypi.stackexchange.com/questions/"
+		},
+		{
+			"url": "https://www.lostfilm.tv/series/Black_Mirror/seasons",
+			"zone_prefix": "https://www.lostfilm.tv/series/"
+		},
+		{
+			"url": "https://habr.com/en/articles/481974/",
+			"zone_prefix": "https://habr.com/en/articles/"
+		}
 	],
 	"black_list":
 	[

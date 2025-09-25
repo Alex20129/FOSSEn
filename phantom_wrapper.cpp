@@ -104,7 +104,7 @@ void PhantomWrapper::loadCookiesFromFile(const QString &pathToFile) const
 	}
 }
 
-void PhantomWrapper::loadPage(const QString &url)
+void PhantomWrapper::loadPage(const QUrl &url)
 {
 	mPage->openUrl(url, "get", mDefaultSettings);
 }
@@ -134,9 +134,9 @@ QString PhantomWrapper::getPageURLEncoded() const
 	return mPage->urlEncoded();
 }
 
-QStringList PhantomWrapper::extractPageLinks() const
+QList<QUrl> PhantomWrapper::extractPageLinks() const
 {
-	QStringList links;
+	QList<QUrl> links;
 	QWebFrame *mainFrame=mPage->mainFrame();
 	if (mainFrame)
 	{
@@ -160,7 +160,7 @@ QStringList PhantomWrapper::extractPageLinks() const
 				{
 					if (newUrl.scheme() == QStringLiteral("http") || newUrl.scheme() == QStringLiteral("https"))
 					{
-						links.append(newUrl.adjusted(QUrl::RemoveFragment).toString());
+						links.append(newUrl.adjusted(QUrl::RemoveFragment));
 					}
 				}
 			}

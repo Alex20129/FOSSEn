@@ -14,21 +14,21 @@ class PhantomWrapper : public QObject
 	CookieJar *mCookieJar;
 	Config *mConfig;
 	QVariantMap mDefaultSettings;
-signals:
-	void pageHasBeenLoaded();
 private slots:
 	void onPageLoadingFinished();
 public:
 	PhantomWrapper(QObject *parent=nullptr);
 	void loadCookiesFromFireFoxProfile(const QString &pathToFile) const;
 	void loadCookiesFromFile(const QString &pathToFile) const;
-	void loadPage(const QString &url);
+	void loadPage(const QUrl &url);
 	QString getPageHtml() const;
 	QString getPagePlainText() const;
 	QString getPageTitle() const;
 	QUrl getPageURL() const;
 	QString getPageURLEncoded() const;
-	QStringList extractPageLinks() const;
+	QList<QUrl> extractPageLinks() const;
+signals:
+	void pageHasBeenLoaded();
 };
 
 #endif // PHANTOM_WRAPPER_HPP

@@ -873,7 +873,7 @@ bool WebPage::clearCookies()
 	return m_cookieJar->deleteCookies(this->urlEncoded());
 }
 
-void WebPage::openUrl(const QString& address, const QVariant& op, const QVariantMap& settings)
+void WebPage::openUrl(const QUrl &url, const QVariant &op, const QVariantMap &settings)
 {
 	QString operation;
 	QByteArray body;
@@ -882,40 +882,55 @@ void WebPage::openUrl(const QString& address, const QVariant& op, const QVariant
 	applySettings(settings);
 	m_customWebPage->triggerAction(QWebPage::Stop);
 
-	if (op.type() == QVariant::String) {
+	if (op.type() == QVariant::String)
+	{
 		operation = op.toString();
 	}
 
-	if (op.type() == QVariant::Map) {
+	if (op.type() == QVariant::Map)
+	{
 		QVariantMap settingsMap = op.toMap();
 		operation = settingsMap.value("operation").toString();
 		QString bodyString = settingsMap.value("data").toString();
 		QString encoding = settingsMap.value("encoding").toString().toLower();
 		body = encoding == "utf-8" || encoding == "utf8" ? bodyString.toUtf8() : bodyString.toLatin1();
-		if (settingsMap.contains("headers")) {
+		if (settingsMap.contains("headers"))
+		{
 			QMapIterator<QString, QVariant> i(settingsMap.value("headers").toMap());
-			while (i.hasNext()) {
+			while (i.hasNext())
+			{
 				i.next();
 				request.setRawHeader(i.key().toUtf8(), i.value().toString().toUtf8());
 			}
 		}
 	}
 
-	if (operation.isEmpty()) {
+	if (operation.isEmpty())
+	{
 		operation = "get";
+	}
+
+	if (url.scheme().isEmpty())
+	{
+		return;
 	}
 
 	QNetworkAccessManager::Operation networkOp = QNetworkAccessManager::UnknownOperation;
 	operation = operation.toLower();
-	if (operation == "get") {
+	if (operation == "get")
+	{
 		networkOp = QNetworkAccessManager::GetOperation;
-	} else if (operation == "head") {
+	} else if (operation == "head")
+	{
 		networkOp = QNetworkAccessManager::HeadOperation;
-	} else if (operation == "put") {
+	} else if (operation == "put")
+	{
 		networkOp = QNetworkAccessManager::PutOperation;
-	} else if (operation == "post") {
+	} else if (operation == "post")
+	{
 		networkOp = QNetworkAccessManager::PostOperation;
-	} else if (operation == "delete") {
+	} else if (operation == "delete")
+	{
 		networkOp = QNetworkAccessManager::DeleteOperation;
 	}
 
@@ -925,24 +940,11 @@ void WebPage::openUrl(const QString& address, const QVariant& op, const QVariant
 		return;
 	}
 
-	if (address == "about:blank")
-	{
-		m_mainFrame->setHtml(BLANK_HTML);
-	} else {
-		QUrl url = QUrl::fromEncoded(QByteArray(address.toLatin1()));
+	request.setUrl(url);
+	m_mainFrame->load(request, networkOp, body);
 
-		// Assume local file if scheme is empty
-		if (url.scheme().isEmpty()) {
-			url.setPath(QFileInfo(url.toString()).absoluteFilePath().prepend("/"));
-			url.setScheme("file");
-		}
-
-		request.setUrl(url);
-		m_mainFrame->load(request, networkOp, body);
-
-		// Emulate the behavior of old QtWebKit
-		m_loadingProgress = 1;
-	}
+	// Emulate the behavior of old QtWebKit
+	m_loadingProgress = 1;
 }
 
 void WebPage::release()

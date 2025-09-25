@@ -11,8 +11,8 @@ QMutex Crawler::sUnwantedLinksMutex;
 Crawler::Crawler(QObject *parent) : QObject(parent)
 {
 	uint32_t rngSeed=QDateTime::currentSecsSinceEpoch()+reinterpret_cast<uintptr_t>(this);
-	mURLListActive=new QList<QString>;
-	mURLListQueued=new QList<QString>;
+	mURLListActive=new QList<QUrl>;
+	mURLListQueued=new QList<QUrl>;
 	mRNG=new QRandomGenerator(rngSeed);
 	mCrawlerPrivateThread=new QThread(this);
 	mLoadingIntervalTimer=new QTimer(this);
@@ -70,7 +70,7 @@ void Crawler::onThreadFinished()
 void Crawler::loadNextPage()
 {
 	qDebug("Crawler::loadNextPage");
-	QString nextURL;
+	QUrl nextURL;
 	if (mURLListActive->isEmpty())
 	{
 		swapURLLists();
@@ -81,7 +81,7 @@ void Crawler::loadNextPage()
 	}
 	nextURL = mURLListActive->takeAt(mRNG->bounded(0, mURLListActive->count()));
 	sUnwantedLinksMutex.lock();
-	sVisitedURLList.insert(nextURL);
+	sVisitedURLList.insert(nextURL.toString());
 	sUnwantedLinksMutex.unlock();
 	qDebug() << mURLListActive->count()+mURLListQueued->count() << "URLs pending on the list";
 	mPhantom->loadPage(nextURL);
@@ -98,7 +98,7 @@ void Crawler::onPageHasBeenLoaded()
 	QString pageURL = mPhantom->getPageURLEncoded();
 	QString pagePlainText = mPhantom->getPagePlainText();
 	QByteArray pageHtml=mPhantom->getPageHtml().toUtf8();
-	QStringList pageLinksList = mPhantom->extractPageLinks();
+	QList<QUrl> pageLinksList = mPhantom->extractPageLinks();
 	PageMetadata pageMetadata;
 
 	qDebug() << pageURL;
@@ -139,9 +139,9 @@ void Crawler::onPageHasBeenLoaded()
 	QFile pageLinksFile(QString("page_")+QString::number(pageMetadata.contentHash&UINT32_MAX, 16).toUpper() + QString("_links.txt"));
 	if (pageLinksFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
 	{
-		for(const QString &link : pageLinksList)
+		for(const QUrl &link : pageLinksList)
 		{
-			pageLinksFile.write(link.toUtf8()+QByteArray("\n"));
+			pageLinksFile.write(link.toString().toUtf8() +QByteArray("\n"));
 		}
 		pageLinksFile.close();
 	}
@@ -199,42 +199,54 @@ void Crawler::stop()
 	mCrawlerPrivateThread->quit();
 }
 
-void Crawler::addURLsToQueue(const QStringList &url_string_list)
+void Crawler::addURLsToQueue(const QList<QUrl> &urls)
 {
 	qDebug("Crawler::addURLsToQueue");
-	for (const QString &link : url_string_list)
+	for (const QUrl &url : urls)
 	{
-		addURLToQueue(link);
+		addURLToQueue(url);
 	}
 }
 
-void Crawler::addURLToQueue(const QString &url_string)
+void Crawler::addURLToQueue(const QUrl &url)
 {
 	qDebug("Crawler::addURLToQueue");
-	QUrl newUrl(url_string);
+	QString URLString=url.toString();
 	bool skipThisURL=0;
+	qDebug() << URLString;
 	sUnwantedLinksMutex.lock();
-	if (sHostnameBlacklist.contains(newUrl.host()))
+	if (sHostnameBlacklist.contains(url.host()))
 	{
 		skipThisURL=1;
-		qDebug() << "Skipping blacklisted host:" << newUrl.host();
+		qDebug() << "Skipping blacklisted host";
 	}
-	else if (sVisitedURLList.contains(url_string))
+	else if (sVisitedURLList.contains(URLString))
 	{
 		skipThisURL=1;
-		qDebug() << "Skipping visited URL:" << url_string;
+		qDebug() << "Skipping visited URL";
 	}
 	sUnwantedLinksMutex.unlock();
+
+	QString zonePrefix = mCrawlingZones.value(url.host());
+	if (!zonePrefix.isEmpty())
+	{
+		if(!URLString.startsWith(zonePrefix))
+		{
+			skipThisURL=1;
+			qDebug() << "Skipping URL outside crawling zone";
+		}
+	}
+
 	if (!skipThisURL)
 	{
-		if (mURLListQueued->contains(url_string))
+		if (mURLListQueued->contains(url))
 		{
-			qDebug() << "Skipping duplicate URL:\n" << url_string;
+			qDebug() << "Skipping duplicate URL";
 		}
 		else
 		{
-			qDebug() << "Adding URL to the processing list:\n" << url_string;
-			mURLListQueued->append(url_string);
+			qDebug() << "Adding URL to the processing list";
+			mURLListQueued->append(url);
 		}
 	}
 }
@@ -249,6 +261,29 @@ void Crawler::addHostnameToBlacklist(const QString &hostname)
 		qDebug() << "Host name has been added to the blacklist:" << hostname;
 	}
 	sUnwantedLinksMutex.unlock();
+}
+
+void Crawler::addCrawlingZone(const QUrl &zone_prefix)
+{
+	qDebug("Crawler::addCrawlingZone");
+	if(zone_prefix.isEmpty())
+	{
+		return;
+	}
+	if(zone_prefix.host().isEmpty())
+	{
+		return;
+	}
+	if(zone_prefix.isValid())
+	{
+		qDebug() << "Prefix:" << zone_prefix.toString();
+		qDebug() << "Host:" << zone_prefix.host();
+		mCrawlingZones.insert(zone_prefix.host(), zone_prefix.toString());
+	}
+	else
+	{
+		qWarning() << "Invalid URL:" << zone_prefix.toString();
+	}
 }
 
 void Crawler::searchTest()

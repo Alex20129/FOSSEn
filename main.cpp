@@ -54,16 +54,21 @@ int main(int argc, char** argv)
 
 	QJsonObject rawlerConfigJsonObject = crawlerConfigJsonDoc.object();
 
-	for (const QJsonValue &url : rawlerConfigJsonObject.value("start_urls").toArray())
+	for (const QJsonValue &startURLEntry : rawlerConfigJsonObject.value("start_urls").toArray())
 	{
-		myCrawler->addURLToQueue(url.toString());
+		if(startURLEntry.isObject())
+		{
+			const QJsonObject urlObject=startURLEntry.toObject();
+			myCrawler->addURLToQueue(urlObject.value("url").toString());
+			myCrawler->addCrawlingZone(urlObject.value("zone_prefix").toString());
+		}
 	}
 	for (const QJsonValue &host : rawlerConfigJsonObject.value("black_list").toArray())
 	{
 		myCrawler->addHostnameToBlacklist(host.toString());
 	}
 
-	// ====== test zone
+	// ======
 	// const Indexer *indexer = myCrawler->getIndexer();
 	QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QApplication::quit);
 	// QObject::connect(myCrawler, &Crawler::finished, myCrawler, &Crawler::searchTest);
