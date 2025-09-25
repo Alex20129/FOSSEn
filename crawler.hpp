@@ -30,7 +30,7 @@ private slots:
 	void onThreadStarted();
 	void onThreadFinished();
 	void loadNextPage();
-	void onPageHasBeenLoaded();
+	void onPageLoadingFinished();
 public:
 	Crawler(QObject *parent=nullptr);
 	~Crawler();

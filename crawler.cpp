@@ -22,7 +22,7 @@ Crawler::Crawler(QObject *parent) : QObject(parent)
 	mLoadingIntervalTimer->setSingleShot(1);
 	connect(mCrawlerPrivateThread, &QThread::started, this, &Crawler::onThreadStarted);
 	connect(mCrawlerPrivateThread, &QThread::finished, this, &Crawler::onThreadFinished);
-	connect(mPhantom, &PhantomWrapper::pageHasBeenLoaded, this, &Crawler::onPageHasBeenLoaded);
+	connect(mPhantom, &PhantomWrapper::pageLoadingFinished, this, &Crawler::onPageLoadingFinished);
 	connect(mLoadingIntervalTimer, &QTimer::timeout, this, &Crawler::loadNextPage);
 	connect(this, &Crawler::needToIndexNewPage, mIndexer, &Indexer::addPage);
 }
@@ -91,13 +91,13 @@ void Crawler::loadNextPage()
 static int visited_n=0;
 #endif
 
-void Crawler::onPageHasBeenLoaded()
+void Crawler::onPageLoadingFinished()
 {
-	qDebug("Crawler::onPageHasBeenLoaded");
+	qDebug("Crawler::onPageLoadingFinished");
 
 	QString pageURL = mPhantom->getPageURLEncoded();
-	QString pagePlainText = mPhantom->getPagePlainText();
-	QByteArray pageHtml=mPhantom->getPageHtml().toUtf8();
+	QString pagePlainText = mPhantom->getPageContentAsPlainText();
+	QByteArray pageHtml=mPhantom->getPageContent().toUtf8();
 	QList<QUrl> pageLinksList = mPhantom->extractPageLinks();
 	PageMetadata pageMetadata;
 
@@ -166,7 +166,7 @@ void Crawler::onPageHasBeenLoaded()
 #endif
 
 #ifndef NDEBUG
-	if(++visited_n>=4)
+	if(++visited_n>=10)
 	{
 		stop();
 	}

@@ -19,7 +19,7 @@ PhantomWrapper::PhantomWrapper(QObject *parent) : QObject(parent)
 	mCookieJar=new CookieJar(mConfig->cookiesFile(), this);
 	mPage=new WebPage(this);
 	mPage->setCookieJar(mCookieJar);
-	connect(mPage, &WebPage::loadFinished, this, &PhantomWrapper::onPageLoadingFinished);
+	connect(mPage, &WebPage::loadFinished, this, &PhantomWrapper::pageLoadingFinished);
 }
 
 void PhantomWrapper::loadCookiesFromFireFoxProfile(const QString &pathToFile) const
@@ -109,14 +109,18 @@ void PhantomWrapper::loadPage(const QUrl &url)
 	mPage->openUrl(url, "get", mDefaultSettings);
 }
 
-QString PhantomWrapper::getPageHtml() const
+QString PhantomWrapper::getPageContent() const
 {
 	return mPage->content();
 }
 
-QString PhantomWrapper::getPagePlainText() const
+#include <QTextDocument>
+QString PhantomWrapper::getPageContentAsPlainText() const
 {
-	return mPage->plainText();
+	QTextDocument tDoc;
+	tDoc.setHtml(mPage->content());
+	QString plainText = tDoc.toPlainText().simplified();
+	return plainText;
 }
 
 QString PhantomWrapper::getPageTitle() const
@@ -137,39 +141,34 @@ QString PhantomWrapper::getPageURLEncoded() const
 QList<QUrl> PhantomWrapper::extractPageLinks() const
 {
 	QList<QUrl> links;
-	QWebFrame *mainFrame=mPage->mainFrame();
-	if (mainFrame)
+	QWebFrame *pageMainFrame=mPage->mainFrame();
+	if (pageMainFrame)
 	{
 		QUrl baseUrl=mPage->url();
-		QWebElementCollection elements=mainFrame->findAllElements("a");
+		QWebElementCollection elements=pageMainFrame->findAllElements("a");
 		for (const QWebElement &element : elements)
 		{
 			QString href=element.attribute("href");
-			QUrl newUrl;
+			QUrl processedUrl;
 			if (!href.isEmpty())
 			{
 				if (baseUrl.isValid())
 				{
-					newUrl=baseUrl.resolved(QUrl(href));
+					processedUrl=baseUrl.resolved(QUrl(href));
 				}
 				else
 				{
-					newUrl=QUrl(href);
+					processedUrl=QUrl(href);
 				}
-				if (newUrl.isValid())
+				if (processedUrl.isValid())
 				{
-					if (newUrl.scheme() == QStringLiteral("http") || newUrl.scheme() == QStringLiteral("https"))
+					if (processedUrl.scheme() == QStringLiteral("http") || processedUrl.scheme() == QStringLiteral("https"))
 					{
-						links.append(newUrl.adjusted(QUrl::RemoveFragment));
+						links.append(processedUrl.adjusted(QUrl::RemoveFragment));
 					}
 				}
 			}
 		}
 	}
 	return links;
-}
-
-void PhantomWrapper::onPageLoadingFinished()
-{
-	emit pageHasBeenLoaded();
 }

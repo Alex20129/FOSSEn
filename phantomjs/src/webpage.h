@@ -56,8 +56,6 @@ class WebPage : public QObject
 	Q_PROPERTY(int loadingProgress READ loadingProgress)
 	Q_PROPERTY(bool canGoBack READ canGoBack)
 	Q_PROPERTY(bool canGoForward READ canGoForward)
-	Q_PROPERTY(QString plainText READ plainText)
-	Q_PROPERTY(QString framePlainText READ framePlainText)
 	Q_PROPERTY(QString libraryPath READ libraryPath WRITE setLibraryPath)
 	Q_PROPERTY(QString offlineStoragePath READ offlineStoragePath)
 	Q_PROPERTY(int offlineStorageQuota READ offlineStorageQuota)
@@ -80,13 +78,13 @@ class WebPage : public QObject
 	Q_PROPERTY(QObject* cookieJar READ cookieJar WRITE setCookieJarFromQObject)
 
 public:
-	WebPage(QObject* parent, const QUrl& baseUrl = QUrl());
+	WebPage(QObject *parent, const QUrl &baseUrl = QUrl());
 	virtual ~WebPage();
 
-	QWebFrame* mainFrame();
+	QWebFrame *mainFrame();
 
 	QString content() const;
-	void setContent(const QString& content);
+	void setContent(const QString &content);
 
 	QString title() const;
 	QUrl url() const;
@@ -94,9 +92,6 @@ public:
 
 	bool loading() const;
 	int loadingProgress() const;
-
-	QString plainText() const;
-	QString framePlainText() const;
 
 	QString libraryPath() const;
 	void setLibraryPath(const QString& dirPath);

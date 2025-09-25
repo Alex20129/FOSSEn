@@ -344,7 +344,7 @@ private:
 	friend class WebPage;
 };
 
-WebPage::WebPage(QObject* parent, const QUrl& baseUrl)
+WebPage::WebPage(QObject *parent, const QUrl &baseUrl)
 	: QObject(parent)
 	, m_navigationLocked(false)
 	, m_mousePos(QPoint(0, 0))
@@ -440,7 +440,7 @@ WebPage::~WebPage()
 	emit closing(this);
 }
 
-QWebFrame* WebPage::mainFrame()
+QWebFrame *WebPage::mainFrame()
 {
 	return m_mainFrame;
 }
@@ -450,7 +450,7 @@ QString WebPage::content() const
 	return m_mainFrame->toHtml();
 }
 
-void WebPage::setContent(const QString& content)
+void WebPage::setContent(const QString &content)
 {
 	m_mainFrame->setHtml(content);
 }
@@ -545,20 +545,6 @@ void WebPage::reload()
 void WebPage::stop()
 {
 	m_customWebPage->triggerAction(QWebPage::Stop);
-}
-
-#include <QTextDocument>
-QString WebPage::plainText() const
-{
-	QTextDocument tDoc;
-	tDoc.setHtml(m_mainFrame->toHtml());
-	QString plainText = tDoc.toPlainText().simplified();
-	return plainText;
-}
-
-QString WebPage::framePlainText() const
-{
-	return m_currentFrame->toPlainText();
 }
 
 QString WebPage::libraryPath() const
