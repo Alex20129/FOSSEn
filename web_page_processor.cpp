@@ -1,28 +1,26 @@
 #include <fcntl.h>
 #include <unistd.h>
-#include <QApplication>
-#include <QWebElement>
+#include <QCoreApplication>
+#include <QNetworkCookie>
 #include <QFileInfo>
+#include <QSettings>
 #include <QDir>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 
-#include "phantom_wrapper.hpp"
+#include "web_page_processor.hpp"
 
-PhantomWrapper::PhantomWrapper(QObject *parent) : QObject(parent)
+WebPageProcessor::WebPageProcessor(QObject *parent) : QObject(parent)
 {
 	mDefaultSettings["javascriptEnabled"]=true;
 	mDefaultSettings["loadImages"]=false;
 	mDefaultSettings["userAgent"]="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0";
-	mConfig=new Config(this);
-	mCookieJar=new CookieJar(mConfig->cookiesFile(), this);
-	mPage=new WebPage(this);
-	mPage->setCookieJar(mCookieJar);
-	connect(mPage, &WebPage::loadFinished, this, &PhantomWrapper::pageLoadingFinished);
+	//mPage=new WebPage(this);
+	//connect(mPage, &WebPage::loadFinished, this, &WebPageProcessor::pageLoadingFinished);
 }
 
-void PhantomWrapper::loadCookiesFromFireFoxProfile(const QString &pathToFile) const
+void WebPageProcessor::loadCookiesFromFireFoxProfile(const QString &pathToFile) const
 {
 	QSettings settings(pathToFile, QSettings::IniFormat);
 	QStringList profiles = settings.childGroups();
@@ -59,7 +57,7 @@ void PhantomWrapper::loadCookiesFromFireFoxProfile(const QString &pathToFile) co
 	loadCookiesFromFile(cookiesFilePath);
 }
 
-void PhantomWrapper::loadCookiesFromFile(const QString &pathToFile) const
+void WebPageProcessor::loadCookiesFromFile(const QString &pathToFile) const
 {
 	QList<QNetworkCookie> cookies;
 	QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "firefox_cookies");
@@ -100,75 +98,75 @@ void PhantomWrapper::loadCookiesFromFile(const QString &pathToFile) const
 	QSqlDatabase::removeDatabase("firefox_cookies");
 	for (const QNetworkCookie &cookie : cookies)
 	{
-		mCookieJar->insertCookie(cookie);
+		// mCookieJar->insertCookie(cookie);
 	}
 }
 
-void PhantomWrapper::loadPage(const QUrl &url)
+void WebPageProcessor::loadPage(const QUrl &url)
 {
-	mPage->openUrl(url, "get", mDefaultSettings);
+	// mPage->openUrl(url, "get", mDefaultSettings);
 }
 
-QString PhantomWrapper::getPageContent() const
+QString WebPageProcessor::getPageContent() const
 {
-	return mPage->content();
+	// return mPage->content();
 }
 
 #include <QTextDocument>
-QString PhantomWrapper::getPageContentAsPlainText() const
+QString WebPageProcessor::getPageContentAsPlainText() const
 {
 	QTextDocument tDoc;
-	tDoc.setHtml(mPage->content());
+	// tDoc.setHtml(mPage->content());
 	QString plainText = tDoc.toPlainText().simplified();
 	return plainText;
 }
 
-QString PhantomWrapper::getPageTitle() const
+QString WebPageProcessor::getPageTitle() const
 {
-	return mPage->title();
+	// return mPage->title();
 }
 
-QUrl PhantomWrapper::getPageURL() const
+QUrl WebPageProcessor::getPageURL() const
 {
-	return mPage->url();
+	// return mPage->url();
 }
 
-QString PhantomWrapper::getPageURLEncoded() const
+QString WebPageProcessor::getPageURLEncoded() const
 {
-	return mPage->urlEncoded();
+	// return mPage->urlEncoded();
 }
 
-QList<QUrl> PhantomWrapper::extractPageLinks() const
+QList<QUrl> WebPageProcessor::extractPageLinks() const
 {
 	QList<QUrl> links;
-	QWebFrame *pageMainFrame=mPage->mainFrame();
-	if (pageMainFrame)
-	{
-		QUrl baseUrl=mPage->url();
-		QWebElementCollection elements=pageMainFrame->findAllElements("a");
-		for (const QWebElement &element : elements)
-		{
-			QString href=element.attribute("href");
-			QUrl processedUrl;
-			if (!href.isEmpty())
-			{
-				if (baseUrl.isValid())
-				{
-					processedUrl=baseUrl.resolved(QUrl(href));
-				}
-				else
-				{
-					processedUrl=QUrl(href);
-				}
-				if (processedUrl.isValid())
-				{
-					if (processedUrl.scheme() == QStringLiteral("http") || processedUrl.scheme() == QStringLiteral("https"))
-					{
-						links.append(processedUrl.adjusted(QUrl::RemoveFragment));
-					}
-				}
-			}
-		}
-	}
+	// QWebFrame *pageMainFrame=mPage->mainFrame();
+	// if (pageMainFrame)
+	// {
+	// 	QUrl baseUrl=mPage->url();
+	// 	QWebElementCollection elements=pageMainFrame->findAllElements("a");
+	// 	for (const QWebElement &element : elements)
+	// 	{
+	// 		QString href=element.attribute("href");
+	// 		QUrl processedUrl;
+	// 		if (!href.isEmpty())
+	// 		{
+	// 			if (baseUrl.isValid())
+	// 			{
+	// 				processedUrl=baseUrl.resolved(QUrl(href));
+	// 			}
+	// 			else
+	// 			{
+	// 				processedUrl=QUrl(href);
+	// 			}
+	// 			if (processedUrl.isValid())
+	// 			{
+	// 				if (processedUrl.scheme() == QStringLiteral("http") || processedUrl.scheme() == QStringLiteral("https"))
+	// 				{
+	// 					links.append(processedUrl.adjusted(QUrl::RemoveFragment));
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 	return links;
 }

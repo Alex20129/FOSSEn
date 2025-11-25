@@ -16,13 +16,13 @@ Crawler::Crawler(QObject *parent) : QObject(parent)
 	mRNG=new QRandomGenerator(rngSeed);
 	mCrawlerPrivateThread=new QThread(this);
 	mLoadingIntervalTimer=new QTimer(this);
-	mPhantom=new PhantomWrapper(this);
+	mWebPageProcessor=new WebPageProcessor(this);
 	mIndexer=new Indexer(this);
 	mIndexer->initialize("in_test.bin");
 	mLoadingIntervalTimer->setSingleShot(1);
 	connect(mCrawlerPrivateThread, &QThread::started, this, &Crawler::onThreadStarted);
 	connect(mCrawlerPrivateThread, &QThread::finished, this, &Crawler::onThreadFinished);
-	connect(mPhantom, &PhantomWrapper::pageLoadingFinished, this, &Crawler::onPageLoadingFinished);
+	connect(mWebPageProcessor, &WebPageProcessor::pageLoadingFinished, this, &Crawler::onPageLoadingFinished);
 	connect(mLoadingIntervalTimer, &QTimer::timeout, this, &Crawler::loadNextPage);
 	connect(this, &Crawler::needToIndexNewPage, mIndexer, &Indexer::addPage);
 }
@@ -40,9 +40,9 @@ void Crawler::swapURLLists()
 	qSwap(mURLListActive, mURLListQueued);
 }
 
-const PhantomWrapper *Crawler::getPhantom() const
+const WebPageProcessor *Crawler::getPhantom() const
 {
-	return mPhantom;
+	return mWebPageProcessor;
 }
 
 const Indexer *Crawler::getIndexer() const
@@ -84,7 +84,7 @@ void Crawler::loadNextPage()
 	sVisitedURLList.insert(nextURL.toString());
 	sUnwantedLinksMutex.unlock();
 	qDebug() << mURLListActive->count()+mURLListQueued->count() << "URLs pending on the list";
-	mPhantom->loadPage(nextURL);
+	mWebPageProcessor->loadPage(nextURL);
 }
 
 #ifndef NDEBUG
@@ -95,18 +95,18 @@ void Crawler::onPageLoadingFinished()
 {
 	qDebug("Crawler::onPageLoadingFinished");
 
-	QString pageURL = mPhantom->getPageURLEncoded();
-	QString pagePlainText = mPhantom->getPageContentAsPlainText();
-	QByteArray pageHtml=mPhantom->getPageContent().toUtf8();
-	QList<QUrl> pageLinksList = mPhantom->extractPageLinks();
+	QString pageURL = mWebPageProcessor->getPageURLEncoded();
+	QString pagePlainText = mWebPageProcessor->getPageContentAsPlainText();
+	QByteArray pageHtml=mWebPageProcessor->getPageContent().toUtf8();
+	QList<QUrl> pageLinksList = mWebPageProcessor->extractPageLinks();
 	PageMetadata pageMetadata;
 
 	qDebug() << pageURL;
 
 	pageMetadata.contentHash=xorshift_hash_64((uint8_t *)pageHtml.data(), pageHtml.size());
 	pageMetadata.timeStamp = QDateTime::currentDateTime();
-	pageMetadata.title = mPhantom->getPageTitle();
-	pageMetadata.url = mPhantom->getPageURL();
+	pageMetadata.title = mWebPageProcessor->getPageTitle();
+	pageMetadata.url = mWebPageProcessor->getPageURL();
 	pageMetadata.words = ExtractWordsAndFrequencies(pagePlainText);
 
 	emit needToIndexNewPage(pageMetadata);

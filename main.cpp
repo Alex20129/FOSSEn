@@ -10,15 +10,15 @@
 
 using namespace std;
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-	QApplication fossenApp(argc, argv);
+	QCoreApplication fossenApp(argc, argv);
 	Crawler *myCrawler=new Crawler;
 
-	const PhantomWrapper *phantom = myCrawler->getPhantom();
-	if (phantom)
+	const WebPageProcessor *pageProcessor = myCrawler->getPhantom();
+	if (pageProcessor)
 	{
-		phantom->loadCookiesFromFireFoxProfile("/home/alex/snap/firefox/common/.mozilla/firefox/profiles.ini");
+		pageProcessor->loadCookiesFromFireFoxProfile("/home/alex/snap/firefox/common/.mozilla/firefox/profiles.ini");
 	}
 
 	QFile crawlerConfigFile("crawler.json");
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 
 	// ======
 	// const Indexer *indexer = myCrawler->getIndexer();
-	QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QApplication::quit);
+	QObject::connect(myCrawler, &Crawler::finished, &fossenApp, &QCoreApplication::quit);
 	// QObject::connect(myCrawler, &Crawler::finished, myCrawler, &Crawler::searchTest);
 	// ======
 

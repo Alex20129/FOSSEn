@@ -1,22 +1,17 @@
-#ifndef PHANTOM_WRAPPER_HPP
-#define PHANTOM_WRAPPER_HPP
+#ifndef WEB_PAGE_PROCESSOR_HPP
+#define WEB_PAGE_PROCESSOR_HPP
 
-#include "config.h"
-#include "webpage.h"
-
+#include <QVariantMap>
 #include <QString>
 #include <QObject>
 
-class PhantomWrapper : public QObject
+class WebPageProcessor : public QObject
 {
 	Q_OBJECT
-	WebPage *mPage;
-	CookieJar *mCookieJar;
-	Config *mConfig;
 	QVariantMap mDefaultSettings;
 private slots:
 public:
-	PhantomWrapper(QObject *parent=nullptr);
+	WebPageProcessor(QObject *parent=nullptr);
 	void loadCookiesFromFireFoxProfile(const QString &pathToFile) const;
 	void loadCookiesFromFile(const QString &pathToFile) const;
 	void loadPage(const QUrl &url);
@@ -30,4 +25,4 @@ signals:
 	void pageLoadingFinished();
 };
 
-#endif // PHANTOM_WRAPPER_HPP
+#endif // WEB_PAGE_PROCESSOR_HPP

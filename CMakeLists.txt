@@ -12,23 +12,13 @@ ELSE()
 	ADD_COMPILE_OPTIONS(-O0)
 ENDIF()
 
-ADD_SUBDIRECTORY(phantomjs)
-INCLUDE_DIRECTORIES(phantomjs/src)
-LINK_LIBRARIES(phantomjs_static)
-
 FIND_PACKAGE(OpenSSL REQUIRED)
 MESSAGE("OpenSSL version: ${OPENSSL_VERSION}")
 LINK_LIBRARIES("${OPENSSL_LIBRARIES}")
 
-FIND_PACKAGE(Qt5 COMPONENTS Core Network WebKitWidgets Sql REQUIRED)
-MESSAGE("Qt version ${Qt5Core_VERSION}")
-IF(Qt5Core_VERSION VERSION_LESS 5.15)
-	MESSAGE(FATAL_ERROR "This version of Qt is not supported. Please use Qt 5.15 or later")
-ENDIF()
-LINK_LIBRARIES(Qt5::Core Qt5::Network Qt5::WebKitWidgets Qt5::Sql)
+FIND_PACKAGE(Qt6 COMPONENTS Core Network Sql WebEngineCore REQUIRED)
+LINK_LIBRARIES(Qt6::Core Qt6::Network Qt6::Sql Qt6::WebEngineCore)
 
-FIND_PACKAGE(Threads REQUIRED)
-LINK_LIBRARIES(Threads::Threads)
 LINK_LIBRARIES(jansson)
 
 ADD_EXECUTABLE(${CMAKE_PROJECT_NAME}
@@ -40,7 +30,7 @@ ADD_EXECUTABLE(${CMAKE_PROJECT_NAME}
 	indexer.cpp
 	simple_hash_func.hpp
 	simple_hash_func.cpp
-	phantom_wrapper.hpp
-	phantom_wrapper.cpp
+	web_page_processor.hpp
+	web_page_processor.cpp
 	util.hpp
 	util.cpp)

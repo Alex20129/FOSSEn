@@ -4,9 +4,9 @@
 # Requirements
 To build it you will need to install some development packages:
 
-Qt 5 WebKit
+Qt 6 WebEngine
 
-`apt install libqt5webkit5-dev`
+`apt install qt6-webengine-dev`
 
 Jansson
 

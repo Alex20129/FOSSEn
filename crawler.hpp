@@ -6,7 +6,7 @@
 #include <QMutex>
 #include <QTimer>
 #include <QRandomGenerator>
-#include "phantom_wrapper.hpp"
+#include "web_page_processor.hpp"
 #include "indexer.hpp"
 
 #define PAGE_LOADING_INTERVAL_MIN 500
@@ -18,7 +18,7 @@ class Crawler : public QObject
 	QRandomGenerator *mRNG;
 	QThread *mCrawlerPrivateThread;
 	QTimer *mLoadingIntervalTimer;
-	PhantomWrapper *mPhantom;
+	WebPageProcessor *mWebPageProcessor;
 	Indexer *mIndexer;
 	QList<QUrl> *mURLListActive, *mURLListQueued;
 	QHash<QString, QString> mCrawlingZones;
@@ -34,7 +34,7 @@ private slots:
 public:
 	Crawler(QObject *parent=nullptr);
 	~Crawler();
-	const PhantomWrapper *getPhantom() const;
+	const WebPageProcessor *getPhantom() const;
 	const Indexer *getIndexer() const;
 	void start();
 	void stop();
