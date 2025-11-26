@@ -78,7 +78,7 @@ WebPageProcessor::WebPageProcessor(QObject *parent) : QObject(parent)
 	connect(mWebPage, &QWebEnginePage::loadFinished, this, &WebPageProcessor::extractPageLinks);
 }
 
-void WebPageProcessor::loadCookiesFromFireFoxProfile(const QString &path_to_file) const
+void WebPageProcessor::loadCookiesFromFireFoxProfile(const QString &path_to_file)
 {
 	if(path_to_file.isEmpty())
 	{
@@ -119,40 +119,42 @@ void WebPageProcessor::loadCookiesFromFireFoxProfile(const QString &path_to_file
 	loadCookiesFromFile(cookiesFilePath);
 }
 
-void WebPageProcessor::loadCookiesFromFile(const QString &pathToFile) const
+void WebPageProcessor::loadCookiesFromFile(const QString &pathToFile)
 {
 	QList<QNetworkCookie> cookies;
-	QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "firefox_cookies");
-	db.setDatabaseName(pathToFile);
-	if (db.open())
 	{
-		QSqlQuery query(db);
-		if (query.exec("SELECT host, path, isSecure, expiry, name, value FROM moz_cookies"))
+		QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "firefox_cookies");
+		db.setDatabaseName(pathToFile);
+		if (db.open())
 		{
-			while (query.next())
+			QSqlQuery query(db);
+			if (query.exec("SELECT host, path, isSecure, expiry, name, value FROM moz_cookies"))
 			{
-				QString host = query.value("host").toString();
-				QString path = query.value("path").toString();
-				bool isSecure = query.value("isSecure").toBool();
-				qint64 expiry = query.value("expiry").toLongLong();
-				QString name = query.value("name").toString();
-				QString value = query.value("value").toString();
-				if (expiry != 0 && expiry < QDateTime::currentSecsSinceEpoch())
+				while (query.next())
 				{
-					continue;
+					QString host = query.value("host").toString();
+					QString path = query.value("path").toString();
+					bool isSecure = query.value("isSecure").toBool();
+					qint64 expiry = query.value("expiry").toLongLong();
+					QString name = query.value("name").toString();
+					QString value = query.value("value").toString();
+					if (expiry != 0 && expiry < QDateTime::currentSecsSinceEpoch())
+					{
+						continue;
+					}
+					QNetworkCookie cookie(name.toUtf8(), value.toUtf8());
+					cookie.setDomain(host);
+					cookie.setPath(path);
+					cookie.setSecure(isSecure);
+					if (expiry != 0)
+					{
+						cookie.setExpirationDate(QDateTime::fromSecsSinceEpoch(expiry));
+					}
+					cookies.append(cookie);
 				}
-				QNetworkCookie cookie(name.toUtf8(), value.toUtf8());
-				cookie.setDomain(host);
-				cookie.setPath(path);
-				cookie.setSecure(isSecure);
-				if (expiry != 0)
-				{
-					cookie.setExpirationDate(QDateTime::fromSecsSinceEpoch(expiry));
-				}
-				cookies.append(cookie);
 			}
+			db.close();
 		}
-		db.close();
 	}
 	QSqlDatabase::removeDatabase("firefox_cookies");
 	for (const QNetworkCookie &cookie : cookies)

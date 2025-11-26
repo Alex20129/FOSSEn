@@ -17,8 +17,8 @@ private slots:
 	void extractPageLinks(bool ok);
 public:
 	WebPageProcessor(QObject *parent=nullptr);
-	void loadCookiesFromFireFoxProfile(const QString &path_to_file) const;
-	void loadCookiesFromFile(const QString &pathToFile) const;
+	void loadCookiesFromFireFoxProfile(const QString &path_to_file);
+	void loadCookiesFromFile(const QString &pathToFile);
 	void loadPage(const QUrl &url);
 	QString getPageContent() const;
 	QString getPageContentAsPlainText() const;
