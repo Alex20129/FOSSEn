@@ -2,29 +2,91 @@
 #include <unistd.h>
 #include <QCoreApplication>
 #include <QNetworkCookie>
+#include <QWebEngineCookieStore>
 #include <QFileInfo>
 #include <QSettings>
 #include <QDir>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
+#include <htmlcxx/html/ParserDom.h>
+#include <htmlcxx/html/Uri.h>
 
 #include "web_page_processor.hpp"
 
-WebPageProcessor::WebPageProcessor(QObject *parent) : QObject(parent)
+void WebPageProcessor::extractPageLinks(bool ok)
 {
-	mDefaultSettings["javascriptEnabled"]=true;
-	mDefaultSettings["loadImages"]=false;
-	mDefaultSettings["userAgent"]="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0";
-	//mPage=new WebPage(this);
-	//connect(mPage, &WebPage::loadFinished, this, &WebPageProcessor::pageLoadingFinished);
+	if(!ok)
+	{
+		return;
+	}
+
+	QString pageContent=getPageContent();
+
+	using namespace htmlcxx;
+
+	HTML::ParserDom parser;
+	tree<htmlcxx::HTML::Node> dom = parser.parseTree(pageContent.toStdString());
+
+	for (tree<htmlcxx::HTML::Node>::iterator it = dom.begin(); it != dom.end(); ++it)
+	{
+		if (it->isTag())
+		{
+			if (it->tagName() == "a" || it->tagName() == "A")
+			{
+				it->parseAttributes();
+				std::string href;
+
+				std::pair<bool, std::string> href_pair = it->attribute("href");
+				if (href_pair.first)  // true, если атрибут найден
+				{
+					href = href_pair.second;
+				}
+
+				if (!href.empty())
+				{
+					qDebug()<<href;
+
+					QString finalUrl = getPageURLEncoded()+QString::fromStdString(href);
+					QUrl qurl(finalUrl);
+
+					if (qurl.isValid() &&
+						(qurl.scheme() == QLatin1String("http") || qurl.scheme() == QLatin1String("https")))
+					{
+						qurl = qurl.adjusted(QUrl::RemoveFragment | QUrl::StripTrailingSlash);
+						if (!mPageLinks.contains(qurl))
+						{
+							mPageLinks.append(qurl);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	qDebug() << "htmlcxx extracted" << mPageLinks.size() << "links from" << getPageURLEncoded();
+	emit pageLoadingFinished();
 }
 
-void WebPageProcessor::loadCookiesFromFireFoxProfile(const QString &pathToFile) const
+WebPageProcessor::WebPageProcessor(QObject *parent) : QObject(parent)
 {
-	QSettings settings(pathToFile, QSettings::IniFormat);
+	mWebPage=new QWebEnginePage(this);
+	mProfile = new QWebEngineProfile(this);
+	mProfile->setHttpCacheType(QWebEngineProfile::NoCache);
+	mProfile->setHttpUserAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0");
+	mProfile->setPersistentCookiesPolicy(QWebEngineProfile::AllowPersistentCookies);
+	connect(mWebPage, &QWebEnginePage::loadFinished, this, &WebPageProcessor::extractPageLinks);
+}
+
+void WebPageProcessor::loadCookiesFromFireFoxProfile(const QString &path_to_file) const
+{
+	if(path_to_file.isEmpty())
+	{
+		return;
+	}
+	QSettings settings(path_to_file, QSettings::IniFormat);
 	QStringList profiles = settings.childGroups();
-	QFileInfo iniFile(pathToFile);
+	QFileInfo iniFile(path_to_file);
 	QDir profilesDir = iniFile.absoluteDir();
 	QString profilePath;
 	for (const QString &group : profiles)
@@ -98,75 +160,54 @@ void WebPageProcessor::loadCookiesFromFile(const QString &pathToFile) const
 	QSqlDatabase::removeDatabase("firefox_cookies");
 	for (const QNetworkCookie &cookie : cookies)
 	{
-		// mCookieJar->insertCookie(cookie);
+		mProfile->cookieStore()->setCookie(cookie);
 	}
 }
 
 void WebPageProcessor::loadPage(const QUrl &url)
 {
-	// mPage->openUrl(url, "get", mDefaultSettings);
+	mWebPage->load(url);
 }
 
 QString WebPageProcessor::getPageContent() const
 {
-	// return mPage->content();
+	QString content;
+	mWebPage->toHtml([&content](const QString &html) { content = html; });
+	return content;
 }
 
-#include <QTextDocument>
 QString WebPageProcessor::getPageContentAsPlainText() const
 {
-	QTextDocument tDoc;
-	// tDoc.setHtml(mPage->content());
-	QString plainText = tDoc.toPlainText().simplified();
+	QString plainText;
+	mWebPage->toPlainText([&plainText](const QString &text) { plainText = text; });
 	return plainText;
 }
 
+// #include <QTextDocument>
+// QString WebPageProcessor::getPageContentAsPlainText() const
+// {
+// 	QTextDocument tDoc;
+// 	tDoc.setHtml(mWebPage->content());
+// 	QString plainText = tDoc.toPlainText().simplified();
+// 	return plainText;
+// }
+
 QString WebPageProcessor::getPageTitle() const
 {
-	// return mPage->title();
+	return mWebPage->title();
 }
 
 QUrl WebPageProcessor::getPageURL() const
 {
-	// return mPage->url();
+	return mWebPage->url();
 }
 
-QString WebPageProcessor::getPageURLEncoded() const
+QByteArray WebPageProcessor::getPageURLEncoded() const
 {
-	// return mPage->urlEncoded();
+	return mWebPage->url().toEncoded();
 }
 
-QList<QUrl> WebPageProcessor::extractPageLinks() const
+QList<QUrl> WebPageProcessor::getPageLinks() const
 {
-	QList<QUrl> links;
-	// QWebFrame *pageMainFrame=mPage->mainFrame();
-	// if (pageMainFrame)
-	// {
-	// 	QUrl baseUrl=mPage->url();
-	// 	QWebElementCollection elements=pageMainFrame->findAllElements("a");
-	// 	for (const QWebElement &element : elements)
-	// 	{
-	// 		QString href=element.attribute("href");
-	// 		QUrl processedUrl;
-	// 		if (!href.isEmpty())
-	// 		{
-	// 			if (baseUrl.isValid())
-	// 			{
-	// 				processedUrl=baseUrl.resolved(QUrl(href));
-	// 			}
-	// 			else
-	// 			{
-	// 				processedUrl=QUrl(href);
-	// 			}
-	// 			if (processedUrl.isValid())
-	// 			{
-	// 				if (processedUrl.scheme() == QStringLiteral("http") || processedUrl.scheme() == QStringLiteral("https"))
-	// 				{
-	// 					links.append(processedUrl.adjusted(QUrl::RemoveFragment));
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-	return links;
+	return mPageLinks;
 }

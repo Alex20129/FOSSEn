@@ -14,15 +14,14 @@ Crawler::Crawler(QObject *parent) : QObject(parent)
 	mURLListActive=new QList<QUrl>;
 	mURLListQueued=new QList<QUrl>;
 	mRNG=new QRandomGenerator(rngSeed);
-	mCrawlerPrivateThread=new QThread(this);
+	mCrawlerThread=new QThread(this);
 	mLoadingIntervalTimer=new QTimer(this);
-	mWebPageProcessor=new WebPageProcessor(this);
+	mWebPageProcessor=nullptr;
 	mIndexer=new Indexer(this);
 	mIndexer->initialize("in_test.bin");
 	mLoadingIntervalTimer->setSingleShot(1);
-	connect(mCrawlerPrivateThread, &QThread::started, this, &Crawler::onThreadStarted);
-	connect(mCrawlerPrivateThread, &QThread::finished, this, &Crawler::onThreadFinished);
-	connect(mWebPageProcessor, &WebPageProcessor::pageLoadingFinished, this, &Crawler::onPageLoadingFinished);
+	connect(mCrawlerThread, &QThread::started, this, &Crawler::onThreadStarted);
+	connect(mCrawlerThread, &QThread::finished, this, &Crawler::onThreadFinished);
 	connect(mLoadingIntervalTimer, &QTimer::timeout, this, &Crawler::loadNextPage);
 	connect(this, &Crawler::needToIndexNewPage, mIndexer, &Indexer::addPage);
 }
@@ -40,9 +39,9 @@ void Crawler::swapURLLists()
 	qSwap(mURLListActive, mURLListQueued);
 }
 
-const WebPageProcessor *Crawler::getPhantom() const
+void Crawler::setPathToFireFoxProfile(const QString &path)
 {
-	return mWebPageProcessor;
+	mPathToFireFoxProfile=path;
 }
 
 const Indexer *Crawler::getIndexer() const
@@ -53,6 +52,12 @@ const Indexer *Crawler::getIndexer() const
 void Crawler::onThreadStarted()
 {
 	qDebug("Crawler::onThreadStarted");
+	if(mWebPageProcessor==nullptr)
+	{
+		mWebPageProcessor=new WebPageProcessor(this);
+	}
+	mWebPageProcessor->loadCookiesFromFireFoxProfile(mPathToFireFoxProfile);
+	connect(mWebPageProcessor, &WebPageProcessor::pageLoadingFinished, this, &Crawler::onPageLoadingFinished);
 	mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
 	mLoadingIntervalTimer->start();
 	emit started(this);
@@ -98,7 +103,7 @@ void Crawler::onPageLoadingFinished()
 	QString pageURL = mWebPageProcessor->getPageURLEncoded();
 	QString pagePlainText = mWebPageProcessor->getPageContentAsPlainText();
 	QByteArray pageHtml=mWebPageProcessor->getPageContent().toUtf8();
-	QList<QUrl> pageLinksList = mWebPageProcessor->extractPageLinks();
+	QList<QUrl> pageLinksList = mWebPageProcessor->getPageLinks();
 	PageMetadata pageMetadata;
 
 	qDebug() << pageURL;
@@ -176,27 +181,6 @@ void Crawler::onPageLoadingFinished()
 		mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
 		mLoadingIntervalTimer->start();
 	}
-}
-
-void Crawler::start()
-{
-	qDebug("Crawler::start");
-	if(this->parent())
-	{
-		this->setParent(nullptr);
-	}
-	this->moveToThread(mCrawlerPrivateThread);
-	mCrawlerPrivateThread->start();
-}
-
-void Crawler::stop()
-{
-	qDebug("Crawler::stop");
-	mLoadingIntervalTimer->stop();
-	qDebug() << "unvisited pages:" << *mURLListActive << *mURLListQueued;
-	mURLListActive->clear();
-	mURLListQueued->clear();
-	mCrawlerPrivateThread->quit();
 }
 
 void Crawler::addURLsToQueue(const QList<QUrl> &urls)
@@ -284,6 +268,24 @@ void Crawler::addCrawlingZone(const QUrl &zone_prefix)
 	{
 		qWarning() << "Invalid URL:" << zone_prefix.toString();
 	}
+}
+
+void Crawler::start()
+{
+	qDebug("Crawler::start");
+	this->setParent(nullptr);
+	this->moveToThread(mCrawlerThread);
+	mCrawlerThread->start();
+}
+
+void Crawler::stop()
+{
+	qDebug("Crawler::stop");
+	mLoadingIntervalTimer->stop();
+	qDebug() << "unvisited pages:" << *mURLListActive << *mURLListQueued;
+	mURLListActive->clear();
+	mURLListQueued->clear();
+	mCrawlerThread->quit();
 }
 
 void Crawler::searchTest()

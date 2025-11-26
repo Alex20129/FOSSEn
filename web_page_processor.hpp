@@ -1,26 +1,31 @@
 #ifndef WEB_PAGE_PROCESSOR_HPP
 #define WEB_PAGE_PROCESSOR_HPP
 
-#include <QVariantMap>
+#include <QWebEngineSettings>
+#include <QWebEnginePage>
+#include <QWebEngineProfile>
 #include <QString>
 #include <QObject>
 
 class WebPageProcessor : public QObject
 {
 	Q_OBJECT
-	QVariantMap mDefaultSettings;
+	QWebEnginePage *mWebPage;
+	QWebEngineProfile *mProfile;
+	QList<QUrl> mPageLinks;
 private slots:
+	void extractPageLinks(bool ok);
 public:
 	WebPageProcessor(QObject *parent=nullptr);
-	void loadCookiesFromFireFoxProfile(const QString &pathToFile) const;
+	void loadCookiesFromFireFoxProfile(const QString &path_to_file) const;
 	void loadCookiesFromFile(const QString &pathToFile) const;
 	void loadPage(const QUrl &url);
 	QString getPageContent() const;
 	QString getPageContentAsPlainText() const;
 	QString getPageTitle() const;
 	QUrl getPageURL() const;
-	QString getPageURLEncoded() const;
-	QList<QUrl> extractPageLinks() const;
+	QByteArray getPageURLEncoded() const;
+	QList<QUrl> getPageLinks() const;
 signals:
 	void pageLoadingFinished();
 };

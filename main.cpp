@@ -12,14 +12,11 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-	QCoreApplication fossenApp(argc, argv);
+	QGuiApplication fossenApp(argc, argv);
+
 	Crawler *myCrawler=new Crawler;
 
-	const WebPageProcessor *pageProcessor = myCrawler->getPhantom();
-	if (pageProcessor)
-	{
-		pageProcessor->loadCookiesFromFireFoxProfile("/home/alex/snap/firefox/common/.mozilla/firefox/profiles.ini");
-	}
+	myCrawler->setPathToFireFoxProfile("/home/alex/snap/firefox/common/.mozilla/firefox/profiles.ini");
 
 	QFile crawlerConfigFile("crawler.json");
 	if (!crawlerConfigFile.exists())
