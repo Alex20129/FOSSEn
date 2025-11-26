@@ -14,14 +14,12 @@ Crawler::Crawler(QObject *parent) : QObject(parent)
 	mURLListActive=new QList<QUrl>;
 	mURLListQueued=new QList<QUrl>;
 	mRNG=new QRandomGenerator(rngSeed);
-	mCrawlerThread=new QThread(this);
 	mLoadingIntervalTimer=new QTimer(this);
-	mWebPageProcessor=nullptr;
+	mWebPageProcessor=new WebPageProcessor(this);
 	mIndexer=new Indexer(this);
 	mIndexer->initialize("in_test.bin");
 	mLoadingIntervalTimer->setSingleShot(1);
-	connect(mCrawlerThread, &QThread::started, this, &Crawler::onThreadStarted);
-	connect(mCrawlerThread, &QThread::finished, this, &Crawler::onThreadFinished);
+	connect(mWebPageProcessor, &WebPageProcessor::pageProcessingFinished, this, &Crawler::onPageProcessingFinished);
 	connect(mLoadingIntervalTimer, &QTimer::timeout, this, &Crawler::loadNextPage);
 	connect(this, &Crawler::needToIndexNewPage, mIndexer, &Indexer::addPage);
 }
@@ -49,29 +47,6 @@ const Indexer *Crawler::getIndexer() const
 	return mIndexer;
 }
 
-void Crawler::onThreadStarted()
-{
-	qDebug("Crawler::onThreadStarted");
-	if(mWebPageProcessor==nullptr)
-	{
-		mWebPageProcessor=new WebPageProcessor(this);
-	}
-	mWebPageProcessor->loadCookiesFromFireFoxProfile(mPathToFireFoxProfile);
-	connect(mWebPageProcessor, &WebPageProcessor::pageLoadingFinished, this, &Crawler::onPageLoadingFinished);
-	mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
-	mLoadingIntervalTimer->start();
-	emit started(this);
-}
-
-void Crawler::onThreadFinished()
-{
-	qDebug("Crawler::onThreadFinished");
-	sUnwantedLinksMutex.lock();
-	qDebug()<<"Visited Pages:\n"<<sVisitedURLList.values();
-	sUnwantedLinksMutex.unlock();
-	emit finished(this);
-}
-
 void Crawler::loadNextPage()
 {
 	qDebug("Crawler::loadNextPage");
@@ -96,7 +71,7 @@ void Crawler::loadNextPage()
 static int visited_n=0;
 #endif
 
-void Crawler::onPageLoadingFinished()
+void Crawler::onPageProcessingFinished()
 {
 	qDebug("Crawler::onPageLoadingFinished");
 
@@ -207,7 +182,7 @@ void Crawler::addURLToQueue(const QUrl &url)
 	else if (sVisitedURLList.contains(URLString))
 	{
 		skipThisURL=1;
-		qDebug() << "Skipping visited URL";
+		qDebug() << "Skipping visited page";
 	}
 	sUnwantedLinksMutex.unlock();
 
@@ -217,7 +192,7 @@ void Crawler::addURLToQueue(const QUrl &url)
 		if(!URLString.startsWith(zonePrefix))
 		{
 			skipThisURL=1;
-			qDebug() << "Skipping URL outside crawling zone";
+			qDebug() << "Skipping page outside crawling zone";
 		}
 	}
 
@@ -273,9 +248,10 @@ void Crawler::addCrawlingZone(const QUrl &zone_prefix)
 void Crawler::start()
 {
 	qDebug("Crawler::start");
-	this->setParent(nullptr);
-	this->moveToThread(mCrawlerThread);
-	mCrawlerThread->start();
+	mWebPageProcessor->loadCookiesFromFireFoxProfile(mPathToFireFoxProfile);
+	mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
+	mLoadingIntervalTimer->start();
+	emit started(this);
 }
 
 void Crawler::stop()
@@ -285,7 +261,10 @@ void Crawler::stop()
 	qDebug() << "unvisited pages:" << *mURLListActive << *mURLListQueued;
 	mURLListActive->clear();
 	mURLListQueued->clear();
-	mCrawlerThread->quit();
+	sUnwantedLinksMutex.lock();
+	qDebug()<<"Visited Pages:\n"<<sVisitedURLList.values();
+	sUnwantedLinksMutex.unlock();
+	emit finished(this);
 }
 
 void Crawler::searchTest()

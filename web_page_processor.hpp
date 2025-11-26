@@ -12,9 +12,11 @@ class WebPageProcessor : public QObject
 	Q_OBJECT
 	QWebEnginePage *mWebPage;
 	QWebEngineProfile *mProfile;
+	QString mPageContent;
 	QList<QUrl> mPageLinks;
 private slots:
-	void extractPageLinks(bool ok);
+	void extractPageContent(bool ok);
+	void extractPageLinks();
 public:
 	WebPageProcessor(QObject *parent=nullptr);
 	void loadCookiesFromFireFoxProfile(const QString &path_to_file);
@@ -28,6 +30,7 @@ public:
 	QList<QUrl> getPageLinks() const;
 signals:
 	void pageLoadingFinished();
+	void pageProcessingFinished();
 };
 
 #endif // WEB_PAGE_PROCESSOR_HPP

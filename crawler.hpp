@@ -2,7 +2,6 @@
 #define CRAWLER_HPP
 
 #include <QObject>
-#include <QThread>
 #include <QMutex>
 #include <QTimer>
 #include <QRandomGenerator>
@@ -17,7 +16,6 @@ class Crawler : public QObject
 	Q_OBJECT
 	QString mPathToFireFoxProfile;
 	QRandomGenerator *mRNG;
-	QThread *mCrawlerThread;
 	QTimer *mLoadingIntervalTimer;
 	WebPageProcessor *mWebPageProcessor;
 	Indexer *mIndexer;
@@ -28,10 +26,8 @@ class Crawler : public QObject
 	static QMutex sUnwantedLinksMutex;
 	void swapURLLists();
 private slots:
-	void onThreadStarted();
-	void onThreadFinished();
 	void loadNextPage();
-	void onPageLoadingFinished();
+	void onPageProcessingFinished();
 public:
 	Crawler(QObject *parent=nullptr);
 	~Crawler();

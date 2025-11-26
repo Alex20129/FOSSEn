@@ -14,49 +14,62 @@
 
 #include "web_page_processor.hpp"
 
-void WebPageProcessor::extractPageLinks(bool ok)
+void WebPageProcessor::extractPageContent(bool ok)
 {
 	if(!ok)
 	{
 		return;
 	}
-
-	QString pageContent=getPageContent();
-
-	using namespace htmlcxx;
-
-	HTML::ParserDom parser;
-	tree<htmlcxx::HTML::Node> dom = parser.parseTree(pageContent.toStdString());
-
-	for (tree<htmlcxx::HTML::Node>::iterator it = dom.begin(); it != dom.end(); ++it)
-	{
-		if (it->isTag())
-		{
-			if (it->tagName() == "a" || it->tagName() == "A")
+	mWebPage->toHtml([this](const QString &html)
 			{
-				it->parseAttributes();
-				std::string href;
+				this->mPageContent = html;
+				emit pageLoadingFinished();
+			});
+}
 
-				std::pair<bool, std::string> href_pair = it->attribute("href");
-				if (href_pair.first)  // true, если атрибут найден
+void WebPageProcessor::extractPageLinks()
+{
+	using namespace htmlcxx;
+	HTML::ParserDom parser;
+	parser.parseTree(mPageContent.toStdString());
+	const tree<HTML::Node> &domTree=parser.getTree();
+	QUrl baseUrl=getPageURL();
+	mPageLinks.clear();
+	for (HTML::Node &n : domTree)
+	{
+		if (n.isTag())
+		{
+			if ((n.tagName() != "a") && (n.tagName() != "A"))
+			{
+				continue;
+			}
+			else
+			{
+				n.parseAttributes();
+				std::string hrefString;
+				std::pair<bool, std::string> href_pair = n.attribute("href");
+				if (href_pair.first)
 				{
-					href = href_pair.second;
-				}
-
-				if (!href.empty())
-				{
-					qDebug()<<href;
-
-					QString finalUrl = getPageURLEncoded()+QString::fromStdString(href);
-					QUrl qurl(finalUrl);
-
-					if (qurl.isValid() &&
-						(qurl.scheme() == QLatin1String("http") || qurl.scheme() == QLatin1String("https")))
+					hrefString = href_pair.second;
+					QUrl processedUrl;
+					if(!hrefString.empty())
 					{
-						qurl = qurl.adjusted(QUrl::RemoveFragment | QUrl::StripTrailingSlash);
-						if (!mPageLinks.contains(qurl))
+						qDebug()<<"href="<<hrefString;
+						if (baseUrl.isValid())
 						{
-							mPageLinks.append(qurl);
+							processedUrl=baseUrl.resolved(QUrl(QString::fromStdString(hrefString)));
+						}
+						else
+						{
+							processedUrl=QUrl(QString::fromStdString(hrefString));
+						}
+						processedUrl=processedUrl.adjusted(QUrl::RemoveFragment);
+						if (processedUrl.isValid())
+						{
+							if (processedUrl.scheme() == QLatin1String("http") || processedUrl.scheme() == QLatin1String("https"))
+							{
+								mPageLinks.append(processedUrl);
+							}
 						}
 					}
 				}
@@ -64,8 +77,8 @@ void WebPageProcessor::extractPageLinks(bool ok)
 		}
 	}
 
-	qDebug() << "htmlcxx extracted" << mPageLinks.size() << "links from" << getPageURLEncoded();
-	emit pageLoadingFinished();
+	qDebug() << mPageLinks.size() << "links extracted from" << getPageURLEncoded();
+	emit pageProcessingFinished();
 }
 
 WebPageProcessor::WebPageProcessor(QObject *parent) : QObject(parent)
@@ -75,7 +88,8 @@ WebPageProcessor::WebPageProcessor(QObject *parent) : QObject(parent)
 	mProfile->setHttpCacheType(QWebEngineProfile::NoCache);
 	mProfile->setHttpUserAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0");
 	mProfile->setPersistentCookiesPolicy(QWebEngineProfile::AllowPersistentCookies);
-	connect(mWebPage, &QWebEnginePage::loadFinished, this, &WebPageProcessor::extractPageLinks);
+	connect(mWebPage, &QWebEnginePage::loadFinished, this, &WebPageProcessor::extractPageContent);
+	connect(this, &WebPageProcessor::pageLoadingFinished, this, &WebPageProcessor::extractPageLinks);
 }
 
 void WebPageProcessor::loadCookiesFromFireFoxProfile(const QString &path_to_file)
@@ -170,26 +184,24 @@ void WebPageProcessor::loadPage(const QUrl &url)
 
 QString WebPageProcessor::getPageContent() const
 {
-	QString content;
-	mWebPage->toHtml([&content](const QString &html) { content = html; });
-	return content;
+	return mPageContent;
 }
 
-QString WebPageProcessor::getPageContentAsPlainText() const
-{
-	QString plainText;
-	mWebPage->toPlainText([&plainText](const QString &text) { plainText = text; });
-	return plainText;
-}
-
-// #include <QTextDocument>
 // QString WebPageProcessor::getPageContentAsPlainText() const
 // {
-// 	QTextDocument tDoc;
-// 	tDoc.setHtml(mWebPage->content());
-// 	QString plainText = tDoc.toPlainText().simplified();
+// 	QString plainText;
+// 	mWebPage->toPlainText([&plainText](const QString &text) { plainText = text; });
 // 	return plainText;
 // }
+
+#include <QTextDocument>
+QString WebPageProcessor::getPageContentAsPlainText() const
+{
+	QTextDocument tDoc;
+	tDoc.setHtml(mPageContent);
+	QString plainText = tDoc.toPlainText().simplified();
+	return plainText;
+}
 
 QString WebPageProcessor::getPageTitle() const
 {
