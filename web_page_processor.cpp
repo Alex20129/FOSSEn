@@ -124,39 +124,36 @@ void WebPageProcessor::loadCookiesFromFile(const QString &pathToFile) const
 	QList<QNetworkCookie> cookies;
 	QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "firefox_cookies");
 	db.setDatabaseName(pathToFile);
-	if (!db.open())
+	if (db.open())
 	{
-		return;
-	}
-	QSqlQuery query(db);
-	if (!query.exec("SELECT host, path, isSecure, expiry, name, value FROM moz_cookies"))
-	{
+		QSqlQuery query(db);
+		if (query.exec("SELECT host, path, isSecure, expiry, name, value FROM moz_cookies"))
+		{
+			while (query.next())
+			{
+				QString host = query.value("host").toString();
+				QString path = query.value("path").toString();
+				bool isSecure = query.value("isSecure").toBool();
+				qint64 expiry = query.value("expiry").toLongLong();
+				QString name = query.value("name").toString();
+				QString value = query.value("value").toString();
+				if (expiry != 0 && expiry < QDateTime::currentSecsSinceEpoch())
+				{
+					continue;
+				}
+				QNetworkCookie cookie(name.toUtf8(), value.toUtf8());
+				cookie.setDomain(host);
+				cookie.setPath(path);
+				cookie.setSecure(isSecure);
+				if (expiry != 0)
+				{
+					cookie.setExpirationDate(QDateTime::fromSecsSinceEpoch(expiry));
+				}
+				cookies.append(cookie);
+			}
+		}
 		db.close();
-		return;
 	}
-	while (query.next())
-	{
-		QString host = query.value("host").toString();
-		QString path = query.value("path").toString();
-		bool isSecure = query.value("isSecure").toBool();
-		qint64 expiry = query.value("expiry").toLongLong();
-		QString name = query.value("name").toString();
-		QString value = query.value("value").toString();
-		if (expiry != 0 && expiry < QDateTime::currentSecsSinceEpoch())
-		{
-			continue;
-		}
-		QNetworkCookie cookie(name.toUtf8(), value.toUtf8());
-		cookie.setDomain(host);
-		cookie.setPath(path);
-		cookie.setSecure(isSecure);
-		if (expiry != 0)
-		{
-			cookie.setExpirationDate(QDateTime::fromSecsSinceEpoch(expiry));
-		}
-		cookies.append(cookie);
-	}
-	db.close();
 	QSqlDatabase::removeDatabase("firefox_cookies");
 	for (const QNetworkCookie &cookie : cookies)
 	{
