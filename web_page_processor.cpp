@@ -35,26 +35,25 @@ void WebPageProcessor::extractPageLinks()
 	const tree<HTML::Node> &domTree=parser.getTree();
 	QUrl baseUrl=getPageURL();
 	mPageLinks.clear();
-	for (HTML::Node &n : domTree)
+	for (HTML::Node &domNode : domTree)
 	{
-		if (n.isTag())
+		if (domNode.isTag())
 		{
-			if ((n.tagName() != "a") && (n.tagName() != "A"))
+			if ((domNode.tagName() != "a") && (domNode.tagName() != "A"))
 			{
 				continue;
 			}
 			else
 			{
-				n.parseAttributes();
+				domNode.parseAttributes();
 				std::string hrefString;
-				std::pair<bool, std::string> href_pair = n.attribute("href");
+				std::pair<bool, std::string> href_pair = domNode.attribute("href");
 				if (href_pair.first)
 				{
 					hrefString = href_pair.second;
 					QUrl processedUrl;
 					if(!hrefString.empty())
 					{
-						qDebug()<<"href="<<hrefString;
 						if (baseUrl.isValid())
 						{
 							processedUrl=baseUrl.resolved(QUrl(QString::fromStdString(hrefString)));
@@ -66,7 +65,7 @@ void WebPageProcessor::extractPageLinks()
 						processedUrl=processedUrl.adjusted(QUrl::RemoveFragment);
 						if (processedUrl.isValid())
 						{
-							if (processedUrl.scheme() == QLatin1String("http") || processedUrl.scheme() == QLatin1String("https"))
+							if (processedUrl.scheme() == QLatin1StringView("http") || processedUrl.scheme() == QLatin1StringView("https"))
 							{
 								mPageLinks.append(processedUrl);
 							}
@@ -76,8 +75,6 @@ void WebPageProcessor::extractPageLinks()
 			}
 		}
 	}
-
-	qDebug() << mPageLinks.size() << "links extracted from" << getPageURLEncoded();
 	emit pageProcessingFinished();
 }
 
