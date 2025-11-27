@@ -73,7 +73,7 @@ static int visited_n=0;
 
 void Crawler::onPageProcessingFinished()
 {
-	qDebug("Crawler::onPageLoadingFinished");
+	qDebug("Crawler::onPageProcessingFinished");
 
 	QString pageURL = mWebPageProcessor->getPageURLEncoded();
 	QString pagePlainText = mWebPageProcessor->getPageContentAsPlainText();
@@ -185,7 +185,6 @@ void Crawler::addURLToQueue(const QUrl &url)
 		qDebug() << "Skipping visited page";
 	}
 	sUnwantedLinksMutex.unlock();
-
 	QString zonePrefix = mCrawlingZones.value(url.host());
 	if (!zonePrefix.isEmpty())
 	{
@@ -195,7 +194,6 @@ void Crawler::addURLToQueue(const QUrl &url)
 			qDebug() << "Skipping page outside crawling zone";
 		}
 	}
-
 	if (!skipThisURL)
 	{
 		if (mURLListQueued->contains(url))
