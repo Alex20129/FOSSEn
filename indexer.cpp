@@ -34,16 +34,16 @@ void Indexer::save(const QString &db_path)
 void Indexer::merge(const Indexer &other)
 {
 	qDebug("Indexer::merge");
-	for (auto it = other.localIndexStorage.constBegin(); it != other.localIndexStorage.constEnd(); it++)
+	for (QHash<uint64_t, PageMetadata*>::const_iterator it = other.localIndexStorage.constBegin(); it != other.localIndexStorage.constEnd(); it++)
 	{
-		uint64_t hash = it.key();
+		const uint64_t hash = it.key();
 		if (!localIndexStorage.contains(hash))
 		{
 			PageMetadata *pageMetaDataCopy = new PageMetadata(*it.value());
 			localIndexStorage.insert(hash, pageMetaDataCopy);
 		}
 	}
-	for (auto it = other.localIndexTableOfContents.constBegin(); it != other.localIndexTableOfContents.constEnd(); it++)
+	for (QHash<QString, QSet<uint64_t>>::const_iterator it = other.localIndexTableOfContents.constBegin(); it != other.localIndexTableOfContents.constEnd(); it++)
 	{
 		const QString &word = it.key();
 		const QSet<uint64_t> &hashes = it.value();
@@ -55,6 +55,7 @@ void Indexer::merge(const Indexer &other)
 
 QList<PageMetadata> Indexer::searchWords(const QStringList &words) const
 {
+	qDebug("Indexer::searchWords");
 	QList<PageMetadata> results;
 	if (words.isEmpty())
 	{
