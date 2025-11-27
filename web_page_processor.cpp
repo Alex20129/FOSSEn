@@ -127,15 +127,15 @@ void WebPageProcessor::loadCookiesFromFireFoxProfile(const QString &path_to_file
 	{
 		return;
 	}
-	loadCookiesFromFile(cookiesFilePath);
+	loadCookiesFromFireFoxDB(cookiesFilePath);
 }
 
-void WebPageProcessor::loadCookiesFromFile(const QString &pathToFile)
+void WebPageProcessor::loadCookiesFromFireFoxDB(const QString &path_to_file)
 {
 	QList<QNetworkCookie> cookies;
 	{
 		QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "firefox_cookies");
-		db.setDatabaseName(pathToFile);
+		db.setDatabaseName(path_to_file);
 		if (db.open())
 		{
 			QSqlQuery query(db);
