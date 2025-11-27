@@ -31,7 +31,7 @@ public:
 	void merge(const Indexer &other);
 	QList<PageMetadata> searchWords(const QStringList &words) const;
 public slots:
-	void addPage(PageMetadata page_metadata);
+	void addPage(const PageMetadata &page_metadata);
 };
 
 #endif // INDEXER_HPP
