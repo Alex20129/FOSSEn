@@ -247,9 +247,12 @@ void Crawler::start()
 {
 	qDebug("Crawler::start");
 	mWebPageProcessor->loadCookiesFromFireFoxProfile(mPathToFireFoxProfile);
-	mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
-	mLoadingIntervalTimer->start();
-	emit started(this);
+	if(!mLoadingIntervalTimer->isActive())
+	{
+		mLoadingIntervalTimer->setInterval(mRNG->bounded(PAGE_LOADING_INTERVAL_MIN, PAGE_LOADING_INTERVAL_MAX));
+		mLoadingIntervalTimer->start();
+		emit started(this);
+	}
 }
 
 void Crawler::stop()

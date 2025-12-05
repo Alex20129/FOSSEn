@@ -80,11 +80,11 @@ void WebPageProcessor::extractPageLinks()
 
 WebPageProcessor::WebPageProcessor(QObject *parent) : QObject(parent)
 {
-	mWebPage=new QWebEnginePage(this);
 	mProfile = new QWebEngineProfile(this);
 	mProfile->setHttpCacheType(QWebEngineProfile::NoCache);
 	mProfile->setHttpUserAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0");
 	mProfile->setPersistentCookiesPolicy(QWebEngineProfile::AllowPersistentCookies);
+	mWebPage=new QWebEnginePage(mProfile, this);
 	connect(mWebPage, &QWebEnginePage::loadFinished, this, &WebPageProcessor::extractPageContent);
 	connect(this, &WebPageProcessor::pageLoadingFinished, this, &WebPageProcessor::extractPageLinks);
 }
